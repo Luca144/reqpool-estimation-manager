@@ -19,6 +19,7 @@ import { generateAssumptions } from './assumptions.js';
 import { generateRisks } from './risks.js';
 import { validateStep1, validateStep2 } from './validation.js';
 import { animateCounter, formatPT, formatEUR } from './ui.js';
+import { renderPhasesChart, destroyPhasesChart } from './charts.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -318,6 +319,11 @@ function handleBack() {
 }
 
 function handleReset() {
+  // Erst Chart-Instanz killen, damit beim Wechsel zurück zu Step 1 keine
+  // Geister-Chart-Listener überleben.
+  const canvas = document.getElementById('phases-chart');
+  if (canvas) destroyPhasesChart(canvas);
+
   for (const key of Object.keys(state.step1Values)) {
     state.step1Values[key] = '';
   }
@@ -415,7 +421,20 @@ function calculateAndRenderResult() {
   renderSummary(estimation);
   renderAssumptions(params);
   renderRisks(params);
-  // Chart-Rendering: Schritt 11. Sensitivity-Slider: Schritt 12.
+  renderChart(estimation);
+  // Sensitivity-Slider: Schritt 12.
+}
+
+function renderChart(estimation) {
+  const canvas = document.getElementById('phases-chart');
+  if (!canvas) return;
+  try {
+    renderPhasesChart(canvas, estimation.phases);
+  } catch (err) {
+    // Chart.js-CDN nicht geladen, oder anderer Renderfehler: User-Flow bleibt
+    // erhalten, nur das Chart fehlt.
+    console.error('Chart-Rendering fehlgeschlagen:', err);
+  }
 }
 
 function renderSummary(estimation) {

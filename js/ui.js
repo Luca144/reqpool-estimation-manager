@@ -65,8 +65,9 @@ const easeOutQuad = t => t * (2 - t);
 /**
  * Liefert true, wenn der User reduzierte Bewegung präferiert. Robust gegen
  * Umgebungen ohne window.matchMedia (Node/jsdom-light).
+ * @returns {boolean}
  */
-function prefersReducedMotion() {
+export function prefersReducedMotion() {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
     return false;
   }
