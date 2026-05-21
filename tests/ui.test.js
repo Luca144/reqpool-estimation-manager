@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { animateCounter, formatPT, formatEUR } from '../js/ui.js';
+import { animateCounter, cancelCounterAnimation, formatPT, formatEUR } from '../js/ui.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // formatPT
@@ -146,5 +146,25 @@ describe('animateCounter', () => {
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 500)),
     ]);
     expect(el.textContent).toBe('—');
+  });
+});
+
+describe('cancelCounterAnimation', () => {
+  it('bricht eine laufende Animation ab und resolved deren Promise', async () => {
+    const el = document.createElement('div');
+    // Lange Animation starten, NICHT awaiten.
+    const promise = animateCounter(el, 100, { duration: 5000 });
+    // Sofort abbrechen.
+    cancelCounterAnimation(el);
+    // Promise muss resolven, sonst timeout.
+    await Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 500)),
+    ]);
+  });
+
+  it('ist no-op, wenn keine Animation läuft', () => {
+    const el = document.createElement('div');
+    expect(() => cancelCounterAnimation(el)).not.toThrow();
   });
 });

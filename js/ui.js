@@ -159,3 +159,19 @@ export function animateCounter(element, targetValue, options = {}) {
     tracking.rafId = requestAnimationFrame(step);
   });
 }
+
+/**
+ * Bricht eine eventuelle laufende Counter-Animation auf dem Element ab,
+ * räumt das Tracking auf und löst das in-flight Promise auf (Interrupt-
+ * Semantik). No-op, wenn keine Animation läuft.
+ *
+ * @param {HTMLElement} element
+ */
+export function cancelCounterAnimation(element) {
+  const tracking = activeAnimations.get(element);
+  if (tracking) {
+    cancelAnimationFrame(tracking.rafId);
+    activeAnimations.delete(element);
+    tracking.resolve();
+  }
+}

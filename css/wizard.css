@@ -548,14 +548,18 @@ input[type='range']:focus-visible::-moz-range-thumb {
 /*  Responsive                                                               */
 /* ───────────────────────────────────────────────────────────────────────── */
 
-/* Tablet ── unter 900px: Live-Preview unter die Form, Result-Charts schmaler */
+/* Tablet ── unter 900px: Live-Preview ÜBER die Form (sticky), Result-Charts schmaler */
 @media (max-width: 900px) {
   .step2-layout {
     grid-template-columns: 1fr;
   }
-  .live-preview {
-    position: relative;
-    top: auto;
+  /* Im einspaltigen Layout soll die Live-Preview zuerst kommen, damit der
+     User sie beim Scrollen durch die Form-Felder permanent sehen kann. */
+  .step2-layout .live-preview {
+    order: -1;
+    position: sticky;
+    top: var(--space-3);
+    z-index: 40;
   }
   .step2-layout .form {
     grid-template-columns: repeat(2, 1fr);

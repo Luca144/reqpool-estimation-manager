@@ -18,7 +18,7 @@ import { calculateEstimation } from './estimation.js';
 import { generateAssumptions } from './assumptions.js';
 import { generateRisks } from './risks.js';
 import { validateStep1, validateStep2 } from './validation.js';
-import { animateCounter, formatPT, formatEUR } from './ui.js';
+import { animateCounter, cancelCounterAnimation, formatPT, formatEUR } from './ui.js';
 import { renderPhasesChart, updatePhasesChart, destroyPhasesChart } from './charts.js';
 import {
   getTopCostDrivers,
@@ -329,15 +329,7 @@ function handleBack() {
 }
 
 function handleReset() {
-  // Erst Chart-Instanz killen, damit beim Wechsel zurück zu Step 1 keine
-  // Geister-Chart-Listener überleben.
-  const canvas = document.getElementById('phases-chart');
-  if (canvas) destroyPhasesChart(canvas);
-
-  // Sensitivity-Container leeren, damit beim nächsten Durchlauf keine
-  // Geister-Slider übrigbleiben.
-  const sensitivityContainer = document.querySelector('[data-sensitivity-sliders]');
-  if (sensitivityContainer) sensitivityContainer.innerHTML = '';
+  clearStep3Display();
 
   for (const key of Object.keys(state.step1Values)) {
     state.step1Values[key] = '';
@@ -531,6 +523,40 @@ async function handleExportPDF() {
       button.textContent = originalLabel || 'Als PDF exportieren';
     }
   }
+}
+
+/**
+ * Setzt alle Step-3-spezifischen DOM-Anzeigen auf ihren Initial-Zustand
+ * zurück. Vermeidet, dass beim nächsten Step-3-Eintritt Geister-Daten
+ * sichtbar werden, bevor calculateAndRenderResult neu rendert.
+ */
+function clearStep3Display() {
+  // Counter — laufende Animation abbrechen, dann Placeholder setzen.
+  const counterEl = document.querySelector('[data-counter]');
+  if (counterEl) {
+    cancelCounterAnimation(counterEl);
+    counterEl.textContent = '— PT';
+  }
+
+  // Cost-Range zurücksetzen.
+  for (const sel of ['[data-cost-min]', '[data-cost-likely]', '[data-cost-max]']) {
+    const el = document.querySelector(sel);
+    if (el) el.textContent = '— EUR';
+  }
+
+  // Listen leeren.
+  const assumptionsList = document.querySelector('[data-assumptions]');
+  if (assumptionsList) assumptionsList.innerHTML = '';
+  const risksList = document.querySelector('[data-risks]');
+  if (risksList) risksList.innerHTML = '';
+
+  // Sensitivity-Slider-Container leeren.
+  const sensitivityContainer = document.querySelector('[data-sensitivity-sliders]');
+  if (sensitivityContainer) sensitivityContainer.innerHTML = '';
+
+  // Chart-Instanz destroyen.
+  const canvas = document.getElementById('phases-chart');
+  if (canvas) destroyPhasesChart(canvas);
 }
 
 function handleResetSensitivity() {

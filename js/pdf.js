@@ -178,16 +178,26 @@ class PDFBuilder {
   }
 
   drawTitle(projectInfo) {
-    this.text('Aufwandsschätzung Requirements Engineering', CONTENT_LEFT, {
-      size: 18, style: 'bold', color: COLORS.text,
-    });
-    this.advance(8);
+    // Titel — fixe Zeile, splitTextToSize falls Übersetzungen mal länger werden.
+    this.font({ size: 18, style: 'bold', color: COLORS.text });
+    const titleLines = this.doc.splitTextToSize(
+      'Aufwandsschätzung Requirements Engineering',
+      CONTENT_WIDTH,
+    );
+    for (const line of titleLines) {
+      this.doc.text(line, CONTENT_LEFT, this.y);
+      this.advance(7);
+    }
+    this.advance(1);
 
+    // Projektname kann lang sein → wrappen.
     if (projectInfo.projectName) {
-      this.text(projectInfo.projectName, CONTENT_LEFT, {
-        size: 14, style: 'bold', color: COLORS.royalBlue,
-      });
-      this.advance(6);
+      this.font({ size: 14, style: 'bold', color: COLORS.royalBlue });
+      const nameLines = this.doc.splitTextToSize(projectInfo.projectName, CONTENT_WIDTH);
+      for (const line of nameLines) {
+        this.doc.text(line, CONTENT_LEFT, this.y);
+        this.advance(6);
+      }
     }
 
     const metaLines = [];
@@ -200,9 +210,14 @@ class PDFBuilder {
     }
     metaLines.push(`Erstellt am ${this.todayLong}`);
 
+    // Meta-Zeilen wrappen — Kundenname kann lang sein.
+    this.font({ size: 10, style: 'normal', color: COLORS.muted });
     for (const line of metaLines) {
-      this.text(line, CONTENT_LEFT, { size: 10, color: COLORS.muted });
-      this.advance(5);
+      const wrapped = this.doc.splitTextToSize(line, CONTENT_WIDTH);
+      for (const wline of wrapped) {
+        this.doc.text(wline, CONTENT_LEFT, this.y);
+        this.advance(5);
+      }
     }
     this.advance(4);
   }
