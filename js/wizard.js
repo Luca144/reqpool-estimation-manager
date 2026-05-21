@@ -25,6 +25,7 @@ import {
   renderSensitivitySliders,
   resetSensitivitySliders,
 } from './sensitivity.js';
+import { exportEstimationToPDF } from './pdf.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -373,7 +374,7 @@ function bindFooterButtons() {
     back: handleBack,
     'new-estimation': handleReset,
     'reset-sensitivity': handleResetSensitivity,
-    // 'export-pdf' wird in Schritt 13 verdrahtet.
+    'export-pdf': handleExportPDF,
   };
   for (const [action, handler] of Object.entries(handlers)) {
     const btn = document.querySelector(`[data-action="${action}"]`);
@@ -494,6 +495,40 @@ function applyOverrides(overrides) {
       updatePhasesChart(canvas, estimation.phases);
     } catch (err) {
       console.error('Chart-Update fehlgeschlagen:', err);
+    }
+  }
+}
+
+async function handleExportPDF() {
+  if (state.currentStep !== 3 || !state.sensitivityOriginalParams) return;
+
+  const button = document.querySelector('[data-action="export-pdf"]');
+  const originalLabel = button?.textContent ?? '';
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Generiere PDF…';
+  }
+
+  try {
+    const currentParams = { ...state.sensitivityOriginalParams, ...state.sensitivityOverrides };
+    const estimation = calculateEstimation(currentParams);
+    const sensitivityModified = Object.keys(state.sensitivityOverrides ?? {}).length > 0;
+
+    await exportEstimationToPDF({
+      projectInfo: { ...state.step1Values },
+      params: currentParams,
+      estimation,
+      assumptions: generateAssumptions(currentParams),
+      risks: generateRisks(currentParams),
+      sensitivityModified,
+    });
+  } catch (err) {
+    console.error('PDF-Export fehlgeschlagen:', err);
+    window.alert('PDF-Export fehlgeschlagen. Bitte Browser-Konsole prüfen.');
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalLabel || 'Als PDF exportieren';
     }
   }
 }
