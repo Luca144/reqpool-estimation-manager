@@ -18,6 +18,7 @@ import { calculateEstimation } from './estimation.js';
 import { generateAssumptions } from './assumptions.js';
 import { generateRisks } from './risks.js';
 import { validateStep1, validateStep2 } from './validation.js';
+import { animateCounter, formatPT, formatEUR } from './ui.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -65,29 +66,6 @@ const state = {
   estimation: null,
   sensitivityOverrides: {},
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Formatter (de-DE Locale, einmal instanziieren)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ptFormatter = new Intl.NumberFormat('de-DE', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 1,
-});
-
-const eurFormatter = new Intl.NumberFormat('de-DE', {
-  style: 'currency',
-  currency: 'EUR',
-  maximumFractionDigits: 0,
-});
-
-function formatPT(value) {
-  return `${ptFormatter.format(value)} PT`;
-}
-
-function formatEUR(value) {
-  return eurFormatter.format(value);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helfer
@@ -403,7 +381,7 @@ function updateLivePreview() {
   const params = buildEstimationParams();
   try {
     const result = calculateEstimation(params);
-    livePt.textContent = formatPT(result.likely);
+    livePt.textContent = `${formatPT(result.likely)} PT`;
     liveCost.textContent = formatEUR(result.costs.likely);
   } catch {
     // Defensive: wenn Pure-Function-Guard greift (z.B. User tippt -5),
@@ -446,8 +424,14 @@ function renderSummary(estimation) {
   const costLikely = document.querySelector('[data-cost-likely]');
   const costMax = document.querySelector('[data-cost-max]');
 
-  // Schritt 10 ersetzt das hier durch animierten Counter; bis dahin: direkt setzen.
-  if (counter) counter.textContent = formatPT(estimation.likely);
+  // Animierter Counter (Schritt 10) — easeOutQuad, 1.2s, respektiert
+  // prefers-reduced-motion (siehe animateCounter in ui.js).
+  if (counter) {
+    animateCounter(counter, estimation.likely, {
+      duration: 1200,
+      format: v => `${formatPT(v)} PT`,
+    });
+  }
   if (costMin) costMin.textContent = formatEUR(estimation.costs.min);
   if (costLikely) costLikely.textContent = formatEUR(estimation.costs.likely);
   if (costMax) costMax.textContent = formatEUR(estimation.costs.max);
