@@ -373,6 +373,42 @@ body {
   gap: var(--space-5);
 }
 
+.sensitivity-slider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sensitivity-slider label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--font-sm);
+}
+
+.sensitivity-slider__label {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.sensitivity-slider__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast), font-weight var(--transition-fast);
+}
+
+.sensitivity-slider__value[data-modified='true'] {
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+}
+
+.sensitivity-slider__hint {
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+}
+
 /* Range-Slider ─ Custom-Styling für WebKit & Firefox.
    CI verbietet Farbverläufe — daher solider Track, kein Filled-Portion-
    Gradient. Die Filled-Portion wird in Schritt 12 ggf. via separates

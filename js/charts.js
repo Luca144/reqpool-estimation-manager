@@ -131,6 +131,32 @@ export function renderPhasesChart(canvas, phases) {
 }
 
 /**
+ * Aktualisiert die Daten einer bestehenden Chart-Instanz in-place (ohne
+ * Animation und ohne Destroy/Re-Render). Geeignet für Live-Updates aus
+ * Sensitivity-Slidern, wo Destroy + Re-Render zu sichtbarem Flackern führt.
+ *
+ * Wenn auf dem Canvas noch keine Instanz existiert, wird auf
+ * {@link renderPhasesChart} delegiert.
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @param {Array<{ key: string, name: string, share: number, pt: number }>} phases
+ * @returns {object} Chart.js-Instanz
+ */
+export function updatePhasesChart(canvas, phases) {
+  if (!Array.isArray(phases) || phases.length === 0) {
+    throw new TypeError('updatePhasesChart erwartet ein nicht-leeres Phasen-Array.');
+  }
+  const chart = CHART_INSTANCES.get(canvas);
+  if (!chart) {
+    return renderPhasesChart(canvas, phases);
+  }
+  chart.data.labels = phases.map(p => p.name);
+  chart.data.datasets[0].data = phases.map(p => p.pt);
+  chart.update('none');
+  return chart;
+}
+
+/**
  * Zerstört eine eventuelle Chart-Instanz auf dem Canvas und räumt das Tracking
  * auf. No-op, wenn keine Instanz existiert.
  *

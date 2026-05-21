@@ -19,7 +19,12 @@ import { generateAssumptions } from './assumptions.js';
 import { generateRisks } from './risks.js';
 import { validateStep1, validateStep2 } from './validation.js';
 import { animateCounter, formatPT, formatEUR } from './ui.js';
-import { renderPhasesChart, destroyPhasesChart } from './charts.js';
+import { renderPhasesChart, updatePhasesChart, destroyPhasesChart } from './charts.js';
+import {
+  getTopCostDrivers,
+  renderSensitivitySliders,
+  resetSensitivitySliders,
+} from './sensitivity.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -65,6 +70,10 @@ const state = {
     users: '',
   },
   estimation: null,
+  // Sensitivity-State — gilt nur in Step 3 und wird bei jedem Wechsel zu Step 3
+  // (calculateAndRenderResult) frisch gesetzt.
+  sensitivityOriginalParams: null,
+  sensitivityTopDrivers: null,
   sensitivityOverrides: {},
 };
 
@@ -324,6 +333,11 @@ function handleReset() {
   const canvas = document.getElementById('phases-chart');
   if (canvas) destroyPhasesChart(canvas);
 
+  // Sensitivity-Container leeren, damit beim nächsten Durchlauf keine
+  // Geister-Slider übrigbleiben.
+  const sensitivityContainer = document.querySelector('[data-sensitivity-sliders]');
+  if (sensitivityContainer) sensitivityContainer.innerHTML = '';
+
   for (const key of Object.keys(state.step1Values)) {
     state.step1Values[key] = '';
   }
@@ -331,6 +345,8 @@ function handleReset() {
     state.step2Values[key] = '';
   }
   state.estimation = null;
+  state.sensitivityOriginalParams = null;
+  state.sensitivityTopDrivers = null;
   state.sensitivityOverrides = {};
 
   const step1Form = document.querySelector('[data-form="step1"]');
@@ -356,7 +372,8 @@ function bindFooterButtons() {
     calculate: handleCalculate,
     back: handleBack,
     'new-estimation': handleReset,
-    // 'export-pdf' und 'reset-sensitivity' werden in Schritt 13 bzw. 12 verdrahtet.
+    'reset-sensitivity': handleResetSensitivity,
+    // 'export-pdf' wird in Schritt 13 verdrahtet.
   };
   for (const [action, handler] of Object.entries(handlers)) {
     const btn = document.querySelector(`[data-action="${action}"]`);
@@ -422,7 +439,74 @@ function calculateAndRenderResult() {
   renderAssumptions(params);
   renderRisks(params);
   renderChart(estimation);
-  // Sensitivity-Slider: Schritt 12.
+  renderSensitivity(params);
+}
+
+function renderSensitivity(params) {
+  const container = document.querySelector('[data-sensitivity-sliders]');
+  if (!container) return;
+
+  state.sensitivityOriginalParams = { ...params };
+  state.sensitivityOverrides = {};
+  state.sensitivityTopDrivers = getTopCostDrivers(params, 3);
+
+  renderSensitivitySliders(
+    container,
+    state.sensitivityOriginalParams,
+    state.sensitivityTopDrivers,
+    applyOverrides,
+  );
+}
+
+/**
+ * Wird vom Sensitivity-Slider-onChange aufgerufen. Berechnet die Schätzung neu
+ * mit den überlagerten Werten und aktualisiert Counter, Cost-Range und Chart
+ * direkt (kein animateCounter — Live-Updates dürfen nicht zappeln).
+ *
+ * @param {Record<string, number>} overrides
+ */
+function applyOverrides(overrides) {
+  if (!state.sensitivityOriginalParams) return;
+  state.sensitivityOverrides = overrides;
+
+  const params = { ...state.sensitivityOriginalParams, ...overrides };
+
+  let estimation;
+  try {
+    estimation = calculateEstimation(params);
+  } catch {
+    return;
+  }
+
+  const counter = document.querySelector('[data-counter]');
+  if (counter) counter.textContent = `${formatPT(estimation.likely)} PT`;
+
+  const costMin = document.querySelector('[data-cost-min]');
+  const costLikely = document.querySelector('[data-cost-likely]');
+  const costMax = document.querySelector('[data-cost-max]');
+  if (costMin) costMin.textContent = formatEUR(estimation.costs.min);
+  if (costLikely) costLikely.textContent = formatEUR(estimation.costs.likely);
+  if (costMax) costMax.textContent = formatEUR(estimation.costs.max);
+
+  const canvas = document.getElementById('phases-chart');
+  if (canvas) {
+    try {
+      updatePhasesChart(canvas, estimation.phases);
+    } catch (err) {
+      console.error('Chart-Update fehlgeschlagen:', err);
+    }
+  }
+}
+
+function handleResetSensitivity() {
+  const container = document.querySelector('[data-sensitivity-sliders]');
+  if (!container || !state.sensitivityTopDrivers) return;
+  resetSensitivitySliders(
+    container,
+    state.sensitivityOriginalParams,
+    state.sensitivityTopDrivers,
+    applyOverrides,
+  );
 }
 
 function renderChart(estimation) {
