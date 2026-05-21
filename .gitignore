@@ -12,3 +12,6 @@ coverage/
 # ReqPOOL-internes Briefing — nicht in das öffentliche Repo
 BRIEFING.md
 BRIEFING.md.txt
+
+# Claude Code Session-Daten
+.claude/
