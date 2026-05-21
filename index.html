@@ -6,9 +6,6 @@
   <meta name="description" content="ReqPOOL Estimation Manager — parametrischer Aufwandsschätzer für Requirements-Engineering-Projekte" />
   <title>ReqPOOL Estimation Manager</title>
 
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- Chart.js via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -18,7 +15,6 @@
   <!-- html2canvas via CDN (für PDF-Rendering aus DOM) -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <!-- Eigene Stylesheets (Reihenfolge wichtig: Reset → Tokens → Components → Wizard → Print) -->
   <link rel="stylesheet" href="./css/reset.css" />
   <link rel="stylesheet" href="./css/tokens.css" />
   <link rel="stylesheet" href="./css/components.css" />
@@ -26,8 +22,301 @@
   <link rel="stylesheet" href="./css/print.css" media="print" />
 </head>
 <body>
-  <main id="app" class="app-shell">
-    <!-- Step-Indikator und Wizard-Inhalt werden in Schritt 7 (HTML-Struktur Wizard) eingesetzt. -->
+  <header class="app-header" role="banner">
+    <div class="app-header__brand">
+      <span class="app-header__logo" aria-label="ReqPOOL Logo">ReqPOOL</span>
+    </div>
+    <h1 class="app-header__title">Aufwandsschätzung Requirements Engineering</h1>
+  </header>
+
+  <main id="app" class="wizard" aria-labelledby="wizard-title">
+    <h2 id="wizard-title" class="sr-only">ReqPOOL Estimation Wizard</h2>
+
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <!-- Step-Indikator                                                      -->
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <ol class="wizard__progress" aria-label="Fortschritt">
+      <li class="wizard__progress-step wizard__progress-step--active" data-progress="1" aria-current="step">
+        <span class="wizard__progress-circle" aria-hidden="true">1</span>
+        <span class="wizard__progress-label">Projektkontext</span>
+      </li>
+      <li class="wizard__progress-step" data-progress="2">
+        <span class="wizard__progress-circle" aria-hidden="true">2</span>
+        <span class="wizard__progress-label">Systemparameter</span>
+      </li>
+      <li class="wizard__progress-step" data-progress="3">
+        <span class="wizard__progress-circle" aria-hidden="true">3</span>
+        <span class="wizard__progress-label">Schätzung</span>
+      </li>
+    </ol>
+
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <!-- Step 1: Projektkontext                                              -->
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <section class="wizard__step wizard__step--active" data-step="1" aria-labelledby="step-1-heading">
+      <h2 id="step-1-heading" class="wizard__step-heading">Schritt 1: Projektkontext</h2>
+
+      <form class="form" data-form="step1">
+        <div class="form__field">
+          <label class="form__label" for="projectName">Projektname</label>
+          <input
+            class="form__input"
+            type="text"
+            id="projectName"
+            name="projectName"
+            maxlength="200"
+            required
+            aria-required="true"
+            autocomplete="off"
+          />
+          <p class="form__error" data-error-for="projectName" role="alert"></p>
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="customerName">Kundenname</label>
+          <input
+            class="form__input"
+            type="text"
+            id="customerName"
+            name="customerName"
+            maxlength="200"
+            required
+            aria-required="true"
+            autocomplete="off"
+          />
+          <p class="form__error" data-error-for="customerName" role="alert"></p>
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="projectDescription">Projektbeschreibung <span class="form__optional">(optional)</span></label>
+          <textarea
+            class="form__textarea"
+            id="projectDescription"
+            name="projectDescription"
+            maxlength="2000"
+            rows="4"
+          ></textarea>
+          <p class="form__error" data-error-for="projectDescription" role="alert"></p>
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="projectType">Projekttyp</label>
+          <select
+            class="form__select"
+            id="projectType"
+            name="projectType"
+            required
+            aria-required="true"
+          >
+            <option value="" disabled selected>Bitte wählen…</option>
+            <option value="Greenfield">Greenfield</option>
+            <option value="Brownfield">Brownfield</option>
+            <option value="Migration">Migration</option>
+          </select>
+          <p class="form__error" data-error-for="projectType" role="alert"></p>
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="plannedStart">Geplanter Start <span class="form__optional">(optional)</span></label>
+          <input
+            class="form__input"
+            type="date"
+            id="plannedStart"
+            name="plannedStart"
+          />
+          <p class="form__error" data-error-for="plannedStart" role="alert"></p>
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="plannedDurationMonths">Geplante Dauer (Monate) <span class="form__optional">(optional)</span></label>
+          <input
+            class="form__input"
+            type="number"
+            id="plannedDurationMonths"
+            name="plannedDurationMonths"
+            min="1"
+            max="120"
+            step="1"
+            inputmode="numeric"
+          />
+          <p class="form__error" data-error-for="plannedDurationMonths" role="alert"></p>
+        </div>
+      </form>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <!-- Step 2: Systemparameter + Live-Preview                              -->
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <section class="wizard__step" data-step="2" aria-labelledby="step-2-heading" hidden>
+      <h2 id="step-2-heading" class="wizard__step-heading">Schritt 2: Systemparameter</h2>
+
+      <div class="step2-layout">
+        <form class="form" data-form="step2">
+          <div class="form__field">
+            <label class="form__label" for="pages">Pages</label>
+            <input class="form__input" type="number" id="pages" name="pages"
+              min="0" max="1000" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="pages-hint" />
+            <p class="form__hint" id="pages-hint">Anzahl der UI-Screens / Seiten der Anwendung</p>
+            <p class="form__error" data-error-for="pages" role="alert"></p>
+          </div>
+
+          <div class="form__field">
+            <label class="form__label" for="useCases">Use Cases</label>
+            <input class="form__input" type="number" id="useCases" name="useCases"
+              min="0" max="500" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="useCases-hint" />
+            <p class="form__hint" id="useCases-hint">Anzahl der zu spezifizierenden Use Cases / Anwendungsfälle</p>
+            <p class="form__error" data-error-for="useCases" role="alert"></p>
+          </div>
+
+          <div class="form__field">
+            <label class="form__label" for="businessObjects">Business Objects</label>
+            <input class="form__input" type="number" id="businessObjects" name="businessObjects"
+              min="0" max="500" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="businessObjects-hint" />
+            <p class="form__hint" id="businessObjects-hint">Anzahl der fachlichen Datenobjekte (Entitäten)</p>
+            <p class="form__error" data-error-for="businessObjects" role="alert"></p>
+          </div>
+
+          <div class="form__field">
+            <label class="form__label" for="interfaces">Interfaces</label>
+            <input class="form__input" type="number" id="interfaces" name="interfaces"
+              min="0" max="100" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="interfaces-hint" />
+            <p class="form__hint" id="interfaces-hint">Anzahl der Schnittstellen zu Drittsystemen</p>
+            <p class="form__error" data-error-for="interfaces" role="alert"></p>
+          </div>
+
+          <div class="form__field">
+            <label class="form__label" for="batches">Batches</label>
+            <input class="form__input" type="number" id="batches" name="batches"
+              min="0" max="100" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="batches-hint" />
+            <p class="form__hint" id="batches-hint">Anzahl der Batch-Prozesse / automatisierten Hintergrundjobs</p>
+            <p class="form__error" data-error-for="batches" role="alert"></p>
+          </div>
+
+          <div class="form__field">
+            <label class="form__label" for="languages">Languages</label>
+            <input class="form__input" type="number" id="languages" name="languages"
+              min="1" max="20" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="languages-hint" />
+            <p class="form__hint" id="languages-hint">Anzahl der unterstützten Sprachen (mindestens 1)</p>
+            <p class="form__error" data-error-for="languages" role="alert"></p>
+          </div>
+
+          <div class="form__field">
+            <label class="form__label" for="roles">Roles</label>
+            <input class="form__input" type="number" id="roles" name="roles"
+              min="1" max="50" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="roles-hint" />
+            <p class="form__hint" id="roles-hint">Anzahl der unterschiedlichen Benutzerrollen</p>
+            <p class="form__error" data-error-for="roles" role="alert"></p>
+          </div>
+
+          <div class="form__field">
+            <label class="form__label" for="users">Users</label>
+            <input class="form__input" type="number" id="users" name="users"
+              min="1" max="1000000" step="1" inputmode="numeric"
+              required aria-required="true" aria-describedby="users-hint" />
+            <p class="form__hint" id="users-hint">Anzahl der erwarteten produktiven Nutzer</p>
+            <p class="form__error" data-error-for="users" role="alert"></p>
+          </div>
+        </form>
+
+        <aside class="live-preview" aria-live="polite" aria-label="Live-Vorschau der Schätzung">
+          <h3 class="live-preview__heading">Live-Vorschau</h3>
+          <div class="live-preview__pt" data-live-pt>— PT</div>
+          <div class="live-preview__cost" data-live-cost>— EUR</div>
+          <small class="live-preview__hint">Aktualisiert sich während der Eingabe</small>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <!-- Step 3: Ergebnis                                                    -->
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <section class="wizard__step" data-step="3" aria-labelledby="step-3-heading" hidden>
+      <h2 id="step-3-heading" class="wizard__step-heading">Schritt 3: Schätzung</h2>
+
+      <div class="result">
+        <div class="result__summary">
+          <div class="result__pt-counter" data-counter aria-label="Gesamtaufwand in Personentagen">— PT</div>
+          <div class="result__cost-range" aria-label="Kosten-Range in Euro">
+            <span class="result__cost-min" data-cost-min>— EUR</span>
+            <span class="result__cost-separator" aria-hidden="true">–</span>
+            <span class="result__cost-likely" data-cost-likely>— EUR</span>
+            <span class="result__cost-separator" aria-hidden="true">–</span>
+            <span class="result__cost-max" data-cost-max>— EUR</span>
+          </div>
+        </div>
+
+        <div class="result__chart">
+          <h3 class="result__section-heading">Phasen-Aufteilung</h3>
+          <canvas id="phases-chart" aria-label="Phasenaufteilung als Donut-Chart"></canvas>
+        </div>
+
+        <div class="result__sensitivity">
+          <h3 class="result__section-heading">Sensitivitäts-Analyse</h3>
+          <p class="result__sensitivity-intro">Hier erscheinen automatisch die drei Parameter mit größtem Einfluss als Slider.</p>
+          <div class="result__sensitivity-sliders" data-sensitivity-sliders></div>
+          <button type="button" class="btn btn--secondary" data-action="reset-sensitivity">Werte zurücksetzen</button>
+        </div>
+
+        <div class="result__assumptions">
+          <h3 class="result__section-heading">Annahmen</h3>
+          <ul class="result__list" data-assumptions></ul>
+        </div>
+
+        <div class="result__risks">
+          <h3 class="result__section-heading">Risiken</h3>
+          <ul class="result__list" data-risks></ul>
+        </div>
+
+        <div class="result__scope">
+          <h3 class="result__section-heading">Scope</h3>
+          <div class="result__scope-grid">
+            <div class="result__scope-in">
+              <h4 class="result__scope-heading">Enthalten</h4>
+              <ul class="result__list">
+                <li>Stakeholder-Analyse und Stakeholder-Interviews</li>
+                <li>Anforderungserhebung in moderierten Workshops</li>
+                <li>Erstellung Lastenheft und Use-Case-Spezifikationen</li>
+                <li>Erstellung Schnittstellenbeschreibungen</li>
+                <li>Definition Abnahmekriterien</li>
+                <li>Reviewzyklen mit Fachbereich</li>
+                <li>Projektmanagement durch ReqPOOL</li>
+              </ul>
+            </div>
+            <div class="result__scope-out">
+              <h4 class="result__scope-heading">Nicht enthalten</h4>
+              <ul class="result__list">
+                <li>Software-Implementierung</li>
+                <li>Testdurchführung (Testfälle werden spezifiziert, nicht ausgeführt)</li>
+                <li>Betrieb und Wartung</li>
+                <li>Datenmigration (bei Migrationsprojekten separat zu skopieren)</li>
+                <li>Change-Management und Schulungen</li>
+                <li>Lizenzkosten Drittsoftware</li>
+                <li>Hardware-Beschaffung</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <!-- Sticky Footer mit Step-Navigation                                   -->
+    <!-- ────────────────────────────────────────────────────────────────── -->
+    <footer class="wizard__footer">
+      <button type="button" class="btn btn--secondary" data-action="back" hidden>Zurück</button>
+      <div class="wizard__footer-spacer" aria-hidden="true"></div>
+      <button type="button" class="btn btn--primary" data-action="next">Weiter</button>
+      <button type="button" class="btn btn--primary" data-action="calculate" hidden>Schätzung berechnen</button>
+      <button type="button" class="btn btn--primary" data-action="export-pdf" hidden>Als PDF exportieren</button>
+      <button type="button" class="btn btn--secondary" data-action="new-estimation" hidden>Neue Schätzung</button>
+    </footer>
   </main>
 
   <!-- App-Einstiegspunkt (ES-Module). wizard.js bindet die übrigen Module ein. -->
