@@ -1,0 +1,9 @@
+/* print.css — PDF/Print-Layout.
+   Wird ggf. ergänzend zu jsPDF eingesetzt (Briefing erwähnt window.print() als Fallback).
+   Wird in Schritt 13 (pdf.js PDF-Export) finalisiert. */
+
+@media print {
+  body {
+    background: var(--color-white);
+  }
+}

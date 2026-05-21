@@ -1,0 +1,93 @@
+/* Design Tokens — ReqPOOL Corporate Identity
+   Quelle: BRIEFING.md, Abschnitt "ReqPOOL Branding".
+   ACHTUNG: Keine Farbverläufe verwenden (CI-Vorgabe). */
+
+:root {
+  /* Primärfarben */
+  --color-black: #000000;
+  --color-white: #FFFFFF;
+  --color-royal-blue: #002EB1;
+  --color-green: #19B874;
+  --color-accent-green: #63F185;
+  --color-accent-blue: #1464F4;
+  --color-grey: #556D73;
+
+  /* Abstufungen Royal Blue */
+  --color-royal-blue-75: rgba(0, 46, 177, 0.75);
+  --color-royal-blue-50: rgba(0, 46, 177, 0.50);
+  --color-royal-blue-25: rgba(0, 46, 177, 0.25);
+
+  /* Abstufungen Green */
+  --color-green-75: rgba(25, 184, 116, 0.75);
+  --color-green-50: rgba(25, 184, 116, 0.50);
+  --color-green-25: rgba(25, 184, 116, 0.25);
+
+  /* Semantische Aliase */
+  --color-bg: var(--color-white);
+  --color-bg-muted: #F7F8FA;
+  --color-text: #0B1220;
+  --color-text-muted: var(--color-grey);
+  --color-border: #E4E7EC;
+  --color-border-strong: #CDD3DA;
+  --color-primary: var(--color-royal-blue);
+  --color-primary-hover: var(--color-accent-blue);
+  --color-success: var(--color-green);
+  --color-danger: #C0273C;
+
+  /* Typografie — System Font Stack */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 1.875rem;
+  --fs-4xl: 2.25rem;
+  --fs-5xl: 3rem;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Spacing-Skala (4px-Grid) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Schatten — subtil, keine grellen Effekte */
+  --shadow-sm: 0 1px 2px rgba(11, 18, 32, 0.04), 0 1px 1px rgba(11, 18, 32, 0.03);
+  --shadow-md: 0 4px 12px rgba(11, 18, 32, 0.06), 0 2px 4px rgba(11, 18, 32, 0.04);
+  --shadow-lg: 0 12px 28px rgba(11, 18, 32, 0.08), 0 4px 8px rgba(11, 18, 32, 0.04);
+
+  /* Motion — ease-in-out, 200-400ms */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}

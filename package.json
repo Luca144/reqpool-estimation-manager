@@ -1,0 +1,14 @@
+{
+  "name": "reqpool-estimation-manager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ReqPOOL Estimation Manager — parametrischer Aufwandsschätzer für Requirements-Engineering-Projekte.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.4"
+  }
+}

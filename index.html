@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ReqPOOL Estimation Manager — parametrischer Aufwandsschätzer für Requirements-Engineering-Projekte" />
+  <title>ReqPOOL Estimation Manager</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- jsPDF via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- html2canvas via CDN (für PDF-Rendering aus DOM) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <!-- Eigene Stylesheets (Reihenfolge wichtig: Reset → Tokens → Components → Wizard → Print) -->
+  <link rel="stylesheet" href="./css/reset.css" />
+  <link rel="stylesheet" href="./css/tokens.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/wizard.css" />
+  <link rel="stylesheet" href="./css/print.css" media="print" />
+</head>
+<body>
+  <main id="app" class="app-shell">
+    <!-- Step-Indikator und Wizard-Inhalt werden in Schritt 7 (HTML-Struktur Wizard) eingesetzt. -->
+  </main>
+
+  <!-- App-Einstiegspunkt (ES-Module). wizard.js bindet die übrigen Module ein. -->
+  <script type="module" src="./js/wizard.js"></script>
+</body>
+</html>
