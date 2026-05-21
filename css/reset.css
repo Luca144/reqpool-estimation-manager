@@ -1,6 +1,8 @@
-/* Modern CSS Reset
-   Reduzierte Variante (orientiert an Josh Comeau / Andy Bell).
-   Ziel: konsistentes Default-Verhalten in allen Browsern ohne kosmetische Overrides. */
+/* reset.css — Modern CSS Reset
+   Orientiert an Josh Comeau und Andy Bell. Reduziert auf das, was die App
+   tatsächlich braucht: konsistentes Box-Sizing, vernünftige Defaults für Body
+   und Form-Elemente, vorhersehbares Rendering von Media-Elementen,
+   prefers-reduced-motion-Respekt. */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -11,6 +13,11 @@
   padding: 0;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html, body {
   height: 100%;
 }
@@ -18,6 +25,7 @@ html, body {
 body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
@@ -48,4 +56,33 @@ ul, ol {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Das native [hidden]-Attribut soll IMMER gewinnen — auch wenn Komponenten
+   wie .btn ein eigenes display setzen. Ohne diese Regel überschreiben
+   `.btn { display: inline-flex }` & Co. den UA-Default. */
+[hidden] {
+  display: none !important;
+}
+
+/* Sichtbarer Focus für Tastatur-Nutzer auf allen interaktiven Elementen.
+   Wird in components.css pro Komponente noch verfeinert. */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-royal-blue);
+  outline-offset: 2px;
+}
+
+/* Reduzierte Bewegung respektieren: Transitions und Animationen abschalten,
+   ohne die App-Logik zu blockieren (scroll behavior bleibt auto). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

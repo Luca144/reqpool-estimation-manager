@@ -1,2 +1,595 @@
-/* wizard.css — Step-spezifische Styles (Step-Indikator, Step-Transitions, Live-Preview-Sidebar).
-   Wird in Schritt 8 gefüllt. */
+/* wizard.css — Layout und Step-spezifische Styles für den 3-Step-Wizard.
+   Tokens aus tokens.css, Komponenten (Buttons/Forms) aus components.css. */
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Page-Layout                                                              */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* ── App-Header ── weiß mit dezenter Royal-Blue-Akzentlinie ──────────────── */
+.app-header {
+  background-color: var(--color-white);
+  border-bottom: 2px solid var(--color-primary);
+  padding: var(--space-5) var(--space-7);
+  display: flex;
+  align-items: center;
+  gap: var(--space-7);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+}
+
+.app-header__logo {
+  font-size: var(--font-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+
+.app-header__title {
+  font-size: var(--font-base);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── Wizard-Container ───────────────────────────────────────────────────── */
+.wizard {
+  flex: 1;
+  width: 100%;
+  max-width: var(--wizard-max-width);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-7) calc(var(--footer-height) + var(--space-7));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Progress-Indikator                                                       */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+.wizard__progress {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.wizard__progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* Verbindungslinie zwischen den Kreisen — geht von Mitte des aktuellen
+   Kreises bis Mitte des nächsten. */
+.wizard__progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 2px;
+  background-color: var(--color-border);
+  transition: background-color var(--transition-base);
+  z-index: -1;
+}
+
+.wizard__progress-step--done:not(:last-child)::after,
+.wizard__progress-step--active:not(:last-child)::after {
+  background-color: var(--color-primary);
+}
+
+.wizard__progress-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  background-color: var(--color-white);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  font-weight: var(--fw-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-base),
+              border-color var(--transition-base),
+              color var(--transition-base),
+              transform var(--transition-base);
+}
+
+.wizard__progress-step--active .wizard__progress-circle {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+  transform: scale(1.06);
+}
+
+.wizard__progress-step--done .wizard__progress-circle {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+  color: var(--color-white);
+  /* Zahl ausblenden, Häkchen via ::after einblenden */
+  font-size: 0;
+}
+
+.wizard__progress-step--done .wizard__progress-circle::before {
+  content: '✓';
+  font-size: var(--font-base);
+  line-height: 1;
+}
+
+.wizard__progress-label {
+  margin-top: var(--space-2);
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  transition: color var(--transition-base), font-weight var(--transition-base);
+}
+
+.wizard__progress-step--active .wizard__progress-label {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
+.wizard__progress-step--done .wizard__progress-label {
+  color: var(--color-success-text);
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Step-Section (Card)                                                      */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+.wizard__step {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-8) var(--space-7);
+}
+
+.wizard__step-heading {
+  font-size: var(--font-2xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-6);
+  letter-spacing: -0.01em;
+}
+
+/* Smooth Slide-in beim Step-Wechsel. wizard.js (Schritt 9) toggelt die
+   --active-Klasse. Die Animation läuft auch beim initialen Page-Load auf
+   Step 1 — bewusst, das ist die Begrüßungsanimation. */
+.wizard__step--active {
+  animation: wizardStepIn var(--transition-slow);
+}
+
+@keyframes wizardStepIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Sticky Footer                                                            */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+.wizard__footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-7);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--footer-height);
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(11, 18, 32, 0.04);
+}
+
+.wizard__footer-spacer {
+  flex: 1;
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Step 2 — Form + Live-Preview-Sidebar                                     */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+.step2-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-7);
+  align-items: start;
+}
+
+/* Step 2 hat besonders viele Felder — zweispaltiges Grid in der Form macht
+   das luftiger. */
+.step2-layout .form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5);
+}
+
+.live-preview {
+  background-color: var(--color-bg-muted);
+  border: 1px solid var(--color-royal-blue-25);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  position: sticky;
+  top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.live-preview__heading {
+  font-size: var(--font-sm);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.live-preview__pt {
+  font-size: var(--font-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.live-preview__cost {
+  font-size: var(--font-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-success-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.live-preview__hint {
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Step 3 — Ergebnis                                                        */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.result__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-7);
+  background-color: var(--color-royal-blue-05);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--color-primary);
+}
+
+.result__pt-counter {
+  font-size: 4.5rem;
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.result__cost-range {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--font-xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.result__cost-min,
+.result__cost-max {
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.result__cost-likely {
+  color: var(--color-success-text);
+  font-weight: var(--fw-bold);
+  font-size: var(--font-2xl);
+}
+
+.result__cost-separator {
+  color: var(--color-border-strong);
+}
+
+.result__section-heading {
+  font-size: var(--font-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+  letter-spacing: -0.01em;
+}
+
+/* ── Chart-Container ────────────────────────────────────────────────────── */
+.result__chart {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.result__chart canvas {
+  max-height: 320px;
+}
+
+/* ── Sensitivity-Analyse ────────────────────────────────────────────────── */
+.result__sensitivity {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.result__sensitivity-intro {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+.result__sensitivity-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Range-Slider ─ Custom-Styling für WebKit & Firefox.
+   CI verbietet Farbverläufe — daher solider Track, kein Filled-Portion-
+   Gradient. Die Filled-Portion wird in Schritt 12 ggf. via separates
+   Element nachgerüstet. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+  outline: none;
+  transition: background-color var(--transition-fast);
+}
+input[type='range']:hover {
+  background-color: var(--color-border-strong);
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  cursor: pointer;
+  border: 3px solid var(--color-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+input[type='range']:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+  box-shadow: var(--shadow-md);
+}
+input[type='range']:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--shadow-focus);
+}
+input[type='range']::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  cursor: pointer;
+  border: 3px solid var(--color-white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+input[type='range']:hover::-moz-range-thumb {
+  transform: scale(1.12);
+  box-shadow: var(--shadow-md);
+}
+input[type='range']:focus-visible::-moz-range-thumb {
+  box-shadow: var(--shadow-focus);
+}
+
+/* ── Annahmen / Risiken — Listen ────────────────────────────────────────── */
+.result__assumptions,
+.result__risks {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.result__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.result__list li {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-border);
+  line-height: 1.5;
+  font-size: var(--font-sm);
+  color: var(--color-text);
+}
+
+/* Risiko-Severity-Akzente — ruhige Töne, kein Knall-Rot/Orange. */
+.result__risks li[data-severity='high'] {
+  border-left-color: var(--color-primary);
+  background-color: var(--color-royal-blue-05);
+}
+.result__risks li[data-severity='medium'] {
+  border-left-color: var(--color-grey);
+}
+.result__risks li[data-severity='low'] {
+  border-left-color: var(--color-border-strong);
+}
+
+/* ── Scope-Box ──────────────────────────────────────────────────────────── */
+.result__scope-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+
+.result__scope-in,
+.result__scope-out {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.result__scope-in {
+  border-left: 3px solid var(--color-success);
+}
+
+.result__scope-out {
+  border-left: 3px solid var(--color-grey);
+}
+
+.result__scope-heading {
+  font-size: var(--font-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+}
+
+.result__scope-in .result__list li {
+  border-left-color: var(--color-success);
+  background-color: var(--color-green-10);
+}
+
+.result__scope-out .result__list li {
+  border-left-color: var(--color-grey);
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Responsive                                                               */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+/* Tablet ── unter 900px: Live-Preview unter die Form, Result-Charts schmaler */
+@media (max-width: 900px) {
+  .step2-layout {
+    grid-template-columns: 1fr;
+  }
+  .live-preview {
+    position: relative;
+    top: auto;
+  }
+  .step2-layout .form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .result__scope-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile ── unter 640px: Single-Column überall, Padding reduziert */
+@media (max-width: 640px) {
+  .app-header {
+    padding: var(--space-4) var(--space-5);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+  .app-header__title {
+    font-size: var(--font-sm);
+  }
+
+  .wizard {
+    padding: var(--space-5) var(--space-4) calc(var(--footer-height) + var(--space-5));
+    gap: var(--space-5);
+  }
+
+  .wizard__step {
+    padding: var(--space-6) var(--space-5);
+    border-radius: var(--radius-md);
+  }
+
+  .wizard__step-heading {
+    font-size: var(--font-xl);
+  }
+
+  .wizard__progress-label {
+    font-size: var(--font-xs);
+  }
+
+  /* Step 2 Form: zurück auf eine Spalte */
+  .step2-layout .form {
+    grid-template-columns: 1fr;
+  }
+
+  .live-preview {
+    /* Mobile: Live-Preview-Bar oben sticky */
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-radius: var(--radius-md);
+  }
+
+  .wizard__footer {
+    padding: var(--space-3) var(--space-4);
+  }
+  .wizard__footer .btn {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-sm);
+  }
+
+  .result__pt-counter {
+    font-size: 3rem;
+  }
+  .result__cost-likely {
+    font-size: var(--font-xl);
+  }
+  .result__cost-range {
+    font-size: var(--font-base);
+  }
+  .result__summary {
+    padding: var(--space-5);
+  }
+}
