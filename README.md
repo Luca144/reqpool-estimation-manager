@@ -96,7 +96,7 @@ GitHub Pages, deployt vom Repo-Root des Branches `main`:
 1. Repo auf GitHub anlegen (Public, Name `reqpool-estimation-manager`).
 2. Lokal pushen.
 3. In Repo-Settings → Pages → Source: **Deploy from a branch** → Branch `main`, Folder `/` (root).
-4. Live-URL: `https://<username>.github.io/reqpool-estimation-manager/`
+4. Live-URL: <https://luca144.github.io/reqpool-estimation-manager/>
 5. Initiales Deployment dauert 1–2 Minuten.
 
 Wichtig: Alle Pfade in HTML/CSS/JS sind **relative Pfade** (`./css/...`), damit das
