@@ -2,7 +2,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderPhasesChart, destroyPhasesChart, PHASE_COLORS } from '../js/charts.js';
-import { PHASE_DISTRIBUTION, calculatePhases } from '../js/estimation.js';
+import { PHASE_DISTRIBUTION } from '../js/config.js';
+import { calculatePhases } from '../js/estimation.js';
 
 /**
  * Tests mocken window.Chart, weil das echte Chart.js via CDN in der

@@ -5,9 +5,9 @@ import {
   PROJECT_TYPE_MULTIPLIERS,
   COMPLEXITY_BUFFER,
   RANGE_FACTORS,
+  PHASE_DISTRIBUTION,
 } from '../js/config.js';
 import {
-  PHASE_DISTRIBUTION,
   TAGESSATZ_EUR,
   calculateBaseEffort,
   getUserScalingFactor,

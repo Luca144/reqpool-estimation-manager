@@ -111,6 +111,24 @@ export const RANGE_FACTORS = Object.freeze({
   max: 1.25,
 });
 
+/**
+ * Phasen-Aufteilung des Gesamtaufwands (Summe der Shares = 1.0).
+ *
+ * Die Reihenfolge ist die Anzeigereihenfolge in Donut-Chart und PDF.
+ * Wird in `calculatePhases` (estimation.js) als Multiplikator-Tabelle
+ * benutzt. Methodik-Konstante — bleibt von Sensitivity-Slidern unberührt.
+ *
+ * @type {ReadonlyArray<Readonly<{ key: string, name: string, share: number }>>}
+ */
+export const PHASE_DISTRIBUTION = Object.freeze([
+  Object.freeze({ key: 'stakeholderAnalysis', name: 'Stakeholder-Analyse', share: 0.12 }),
+  Object.freeze({ key: 'requirementsElicitation', name: 'Anforderungserhebung', share: 0.28 }),
+  Object.freeze({ key: 'specification', name: 'Spezifikation', share: 0.35 }),
+  Object.freeze({ key: 'reviewQa', name: 'Review & QA', share: 0.15 }),
+  Object.freeze({ key: 'acceptanceHandover', name: 'Abnahme & Übergabe', share: 0.05 }),
+  Object.freeze({ key: 'projectManagement', name: 'Projektmanagement', share: 0.05 }),
+]);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PREISBASIS — Default-Tagessatz (Sprint-2-A2 erlaubt User-Override)
 // (wird im letzten Mini-Commit dieses Refactors befüllt)
