@@ -12,6 +12,18 @@ nicht aufgeführt.
 
 ## [Unreleased]
 
+### Added
+
+- **Machbarkeits-Check in Step 3** — ein neuer Block unter „Schritt 3:
+  Schätzung" vergleicht die geplante Projektdauer aus Step 1 mit der
+  errechneten realistischen Dauer und zeigt eine Ampel (grün / blau /
+  rot mit Indikator). Berater-Slider (1–10, Default 2) erlaubt
+  Was-wäre-wenn-Spielen. Block bleibt automatisch versteckt, wenn in
+  Step 1 keine geplante Dauer angegeben wurde. Reagiert live auf
+  Sensitivity-Slider-Bewegungen, weil sie den Gesamtaufwand verändern.
+  Pure-Logic in `js/feasibility.js` (`assessFeasibility(totalPT,
+  plannedMonths, consultantCount)`).
+
 ### Changed
 
 - **Architektur** — Schätzformel-Konstanten und Default-Tagessatz zentral in

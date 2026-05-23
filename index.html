@@ -249,6 +249,39 @@
           </div>
         </div>
 
+        <div class="result__feasibility" data-feasibility hidden>
+          <h3 class="result__section-heading">Machbarkeits-Check</h3>
+          <p class="result__feasibility-intro">
+            Wie viele Berater sind eingeplant? Der Ampel-Check vergleicht die Planung
+            aus Step 1 mit der jetzt errechneten realistischen Projektdauer.
+          </p>
+          <div class="feasibility-controls">
+            <label class="feasibility-controls__label" for="consultantCount">Anzahl Berater</label>
+            <input
+              class="feasibility-controls__slider"
+              type="range"
+              id="consultantCount"
+              name="consultantCount"
+              min="1"
+              max="10"
+              step="1"
+              value="2"
+              aria-label="Anzahl Berater"
+              aria-valuemin="1"
+              aria-valuemax="10"
+            />
+            <span class="feasibility-controls__value" data-consultant-value>2</span>
+          </div>
+          <div class="feasibility-card" data-feasibility-card>
+            <span class="feasibility-card__indicator" aria-hidden="true"></span>
+            <div class="feasibility-card__body">
+              <div class="feasibility-card__status" data-feasibility-status>—</div>
+              <div class="feasibility-card__details" data-feasibility-details>—</div>
+              <p class="feasibility-card__recommendation" data-feasibility-recommendation>—</p>
+            </div>
+          </div>
+        </div>
+
         <div class="result__chart">
           <h3 class="result__section-heading">Phasen-Aufteilung</h3>
           <canvas id="phases-chart" aria-label="Phasenaufteilung als Donut-Chart"></canvas>

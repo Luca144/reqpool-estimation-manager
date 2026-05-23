@@ -144,3 +144,25 @@ export const PHASE_DISTRIBUTION = Object.freeze([
  * Tagessatz zu setzen — der hier ist der „Default".
  */
 export const DEFAULT_TAGESSATZ = 1200;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MACHBARKEIT — Werktage pro Monat, Toleranzband für Plan-vs-Realismus
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Werktage pro Monat — Annahme für die Machbarkeits-Analyse.
+ * 20 ist branchenüblich (5 Tage × ~4 Wochen, abzüglich Feiertage/Urlaub im
+ * Mittel). Wird in `assessFeasibility` (feasibility.js) zur Umrechnung
+ * Personentage → Monate verwendet.
+ */
+export const WORKDAYS_PER_MONTH = 20;
+
+/**
+ * Toleranzband um die realistische Projektdauer (±20%).
+ *
+ * Liegt die geplante Dauer innerhalb dieses Bandes, gilt das Projekt als
+ * „passend" (grün). Liegt sie darüber, ist die Dauer „großzügig" (gelb).
+ * Liegt sie darunter, ist sie „zu knapp" (rot) — beratungsseitig der
+ * gefährliche Fall.
+ */
+export const FEASIBILITY_TOLERANCE = 0.20;

@@ -373,6 +373,119 @@ body {
   gap: var(--space-5);
 }
 
+/* ── Machbarkeits-Check ────────────────────────────────────────────────── */
+
+.result__feasibility {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.result__feasibility-intro {
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+.feasibility-controls {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.feasibility-controls__label {
+  font-weight: var(--fw-semibold);
+  font-size: var(--font-sm);
+  color: var(--color-text);
+}
+
+.feasibility-controls__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  min-width: 2ch;
+  text-align: right;
+}
+
+.feasibility-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  border-left-width: 4px;
+  transition: background-color var(--transition-base),
+              border-color var(--transition-base);
+}
+
+.feasibility-card__indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 6px;
+  background-color: var(--color-border-strong);
+  flex-shrink: 0;
+  transition: background-color var(--transition-base);
+}
+
+.feasibility-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.feasibility-card__status {
+  font-weight: var(--fw-bold);
+  font-size: var(--font-base);
+  color: var(--color-text);
+}
+
+.feasibility-card__details {
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.feasibility-card__recommendation {
+  font-size: var(--font-sm);
+  color: var(--color-text);
+  margin-top: var(--space-2);
+  line-height: 1.5;
+}
+
+/* Status-Varianten — Royal-Blue dient als "Hinweis"-Farbe statt Knall-Gelb,
+   weil die CI kein Gelb hat. Drei klar unterscheidbare Zustände bleiben
+   trotzdem erhalten (Indikator-Punkt + Border-Color + Hintergrund). */
+.feasibility-card[data-feasibility-status='green'] {
+  border-left-color: var(--color-success);
+  background-color: var(--color-green-10);
+}
+.feasibility-card[data-feasibility-status='green'] .feasibility-card__indicator {
+  background-color: var(--color-success);
+}
+
+.feasibility-card[data-feasibility-status='yellow'] {
+  border-left-color: var(--color-primary);
+  background-color: var(--color-royal-blue-05);
+}
+.feasibility-card[data-feasibility-status='yellow'] .feasibility-card__indicator {
+  background-color: var(--color-primary);
+}
+
+.feasibility-card[data-feasibility-status='red'] {
+  border-left-color: var(--color-danger);
+  background-color: var(--color-danger-bg);
+}
+.feasibility-card[data-feasibility-status='red'] .feasibility-card__indicator {
+  background-color: var(--color-danger);
+}
+
 .sensitivity-slider {
   display: flex;
   flex-direction: column;

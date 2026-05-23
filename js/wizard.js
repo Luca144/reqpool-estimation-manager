@@ -26,6 +26,7 @@ import {
   resetSensitivitySliders,
 } from './sensitivity.js';
 import { exportEstimationToPDF } from './pdf.js';
+import { assessFeasibility } from './feasibility.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -44,7 +45,16 @@ const STEP_2_FIELDS = [
 /** Default-Projekttyp für die Live-Preview, falls Step 1 noch leer ist. */
 const DEFAULT_PROJECT_TYPE = 'Greenfield';
 
+/** Default-Berater-Anzahl für den Machbarkeits-Check in Step 3. */
+const DEFAULT_CONSULTANT_COUNT = 2;
+
 const LIVE_PREVIEW_DEBOUNCE_MS = 300;
+
+const FEASIBILITY_STATUS_LABELS = Object.freeze({
+  green: 'Plan ist realistisch',
+  yellow: 'Plan ist großzügig',
+  red: 'Plan ist zu knapp',
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State
@@ -76,6 +86,8 @@ const state = {
   sensitivityOriginalParams: null,
   sensitivityTopDrivers: null,
   sensitivityOverrides: {},
+  // Berater-Anzahl für den Machbarkeits-Check in Step 3.
+  consultantCount: DEFAULT_CONSULTANT_COUNT,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -341,6 +353,7 @@ function handleReset() {
   state.sensitivityOriginalParams = null;
   state.sensitivityTopDrivers = null;
   state.sensitivityOverrides = {};
+  state.consultantCount = DEFAULT_CONSULTANT_COUNT;
 
   const step1Form = document.querySelector('[data-form="step1"]');
   const step2Form = document.querySelector('[data-form="step2"]');
@@ -433,6 +446,112 @@ function calculateAndRenderResult() {
   renderRisks(params);
   renderChart(estimation);
   renderSensitivity(params);
+  renderFeasibility();
+}
+
+/**
+ * Liest die geplante Dauer aus Step 1 und konvertiert in eine positive Zahl.
+ * @returns {number | null} Monate als Number, oder null wenn leer/ungültig.
+ */
+function getPlannedMonths() {
+  const raw = state.step1Values.plannedDurationMonths;
+  if (raw === '' || raw === null || raw === undefined) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
+ * Rendert (oder versteckt) den Machbarkeits-Check-Block in Step 3.
+ * Wenn keine geplante Dauer in Step 1 angegeben wurde: Block bleibt hidden.
+ * Sonst: Slider initialisieren und Ampel-Karte mit aktuellem State befüllen.
+ */
+function renderFeasibility() {
+  const container = document.querySelector('[data-feasibility]');
+  if (!container) return;
+
+  const plannedMonths = getPlannedMonths();
+  if (plannedMonths == null) {
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+
+  const slider = document.getElementById('consultantCount');
+  const valueEl = document.querySelector('[data-consultant-value]');
+  if (slider) {
+    slider.value = String(state.consultantCount);
+    // Listener idempotent: wir entfernen ggf. vorhandenen und binden neu —
+    // verhindert doppelte Aufrufe bei wiederholtem Step-3-Eintritt.
+    slider.removeEventListener('input', handleConsultantSliderInput);
+    slider.addEventListener('input', handleConsultantSliderInput);
+  }
+  if (valueEl) valueEl.textContent = String(state.consultantCount);
+
+  updateFeasibilityCard();
+}
+
+function handleConsultantSliderInput(event) {
+  const v = Number(event.target.value);
+  if (!Number.isFinite(v) || v < 1) return;
+  state.consultantCount = v;
+  const valueEl = document.querySelector('[data-consultant-value]');
+  if (valueEl) valueEl.textContent = String(v);
+  updateFeasibilityCard();
+}
+
+/**
+ * Aktualisiert die Ampel-Karte basierend auf aktuellem Estimation-Likely-Wert
+ * und Berater-Anzahl im State.
+ */
+function updateFeasibilityCard() {
+  const card = document.querySelector('[data-feasibility-card]');
+  const statusEl = document.querySelector('[data-feasibility-status]');
+  const detailsEl = document.querySelector('[data-feasibility-details]');
+  const recEl = document.querySelector('[data-feasibility-recommendation]');
+  if (!card || !statusEl || !detailsEl || !recEl) return;
+
+  const plannedMonths = getPlannedMonths();
+  if (plannedMonths == null || !state.estimation) return;
+
+  // Aktuelle Likely-PT inkl. eventueller Sensitivity-Overrides verwenden:
+  // re-calculate aus den effektiven Params, damit Slider-Bewegungen reflektiert
+  // werden. State.estimation ist die ursprüngliche, nicht die überlagerte.
+  const effectiveParams = state.sensitivityOriginalParams
+    ? { ...state.sensitivityOriginalParams, ...state.sensitivityOverrides }
+    : null;
+  let likelyPT = state.estimation.likely;
+  if (effectiveParams) {
+    try {
+      likelyPT = calculateEstimation(effectiveParams).likely;
+    } catch {
+      // Defensive: bei Pure-Function-Guard alten Wert behalten.
+    }
+  }
+
+  let result;
+  try {
+    result = assessFeasibility(likelyPT, plannedMonths, state.consultantCount);
+  } catch (err) {
+    console.error('Feasibility-Berechnung fehlgeschlagen:', err);
+    return;
+  }
+
+  card.dataset.feasibilityStatus = result.status;
+  statusEl.textContent = FEASIBILITY_STATUS_LABELS[result.status];
+
+  const min = ptFormat(result.realisticMonthsMin);
+  const max = ptFormat(result.realisticMonthsMax);
+  detailsEl.textContent = `Realistisch: ${min}–${max} Monate · Geplant: ${ptFormat(result.plannedMonths)}`;
+
+  recEl.textContent = result.recommendation;
+}
+
+/** Formatter für Monatszahlen: 1 Nachkommastelle, deutsches Komma. */
+function ptFormat(value) {
+  return new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
 function renderSensitivity(params) {
@@ -489,6 +608,9 @@ function applyOverrides(overrides) {
       console.error('Chart-Update fehlgeschlagen:', err);
     }
   }
+
+  // Feasibility-Karte ist live mit Sensitivity-Overrides verbunden.
+  updateFeasibilityCard();
 }
 
 async function handleExportPDF() {
@@ -557,6 +679,16 @@ function clearStep3Display() {
   // Chart-Instanz destroyen.
   const canvas = document.getElementById('phases-chart');
   if (canvas) destroyPhasesChart(canvas);
+
+  // Machbarkeits-Block zurücksetzen: Container ausblenden, Slider auf Default.
+  const feasibilityContainer = document.querySelector('[data-feasibility]');
+  if (feasibilityContainer) feasibilityContainer.hidden = true;
+  const consultantSlider = document.getElementById('consultantCount');
+  if (consultantSlider) consultantSlider.value = String(DEFAULT_CONSULTANT_COUNT);
+  const consultantValue = document.querySelector('[data-consultant-value]');
+  if (consultantValue) consultantValue.textContent = String(DEFAULT_CONSULTANT_COUNT);
+  const feasibilityCard = document.querySelector('[data-feasibility-card]');
+  if (feasibilityCard) delete feasibilityCard.dataset.feasibilityStatus;
 }
 
 function handleResetSensitivity() {
