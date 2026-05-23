@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { WEIGHTS, USER_SCALING_THRESHOLDS } from '../js/config.js';
 import {
+  WEIGHTS,
+  USER_SCALING_THRESHOLDS,
   PROJECT_TYPE_MULTIPLIERS,
+} from '../js/config.js';
+import {
   PHASE_DISTRIBUTION,
   TAGESSATZ_EUR,
   COMPLEXITY_BUFFER,

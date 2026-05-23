@@ -72,6 +72,23 @@ export const USER_SCALING_THRESHOLDS = Object.freeze([
   Object.freeze({ upTo: Infinity, factor: 1.6 }),
 ]);
 
+/**
+ * Aufschlag-Multiplikator je Projekttyp.
+ *
+ * Greenfield = neu von Grün, kein Altbestand → 1.0
+ * Brownfield = Bestand integrieren → 1.2
+ * Migration  = bestehendes System ablösen → 1.35
+ *
+ * Wird in `getProjectTypeMultiplier` (estimation.js) als Lookup verwendet.
+ *
+ * @type {Readonly<Record<'Greenfield' | 'Brownfield' | 'Migration', number>>}
+ */
+export const PROJECT_TYPE_MULTIPLIERS = Object.freeze({
+  Greenfield: 1.0,
+  Brownfield: 1.2,
+  Migration: 1.35,
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PREISBASIS — Default-Tagessatz (Sprint-2-A2 erlaubt User-Override)
 // (wird im letzten Mini-Commit dieses Refactors befüllt)

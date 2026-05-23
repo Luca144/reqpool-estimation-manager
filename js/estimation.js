@@ -12,22 +12,17 @@
  * Spezifikation siehe BRIEFING.md, Abschnitt "Schätzlogik".
  */
 
-import { WEIGHTS, USER_SCALING_THRESHOLDS } from './config.js';
+import {
+  WEIGHTS,
+  USER_SCALING_THRESHOLDS,
+  PROJECT_TYPE_MULTIPLIERS,
+} from './config.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten (BRIEFING.md → "Parameter-Gewichte")
-// WEIGHTS und USER_SCALING_THRESHOLDS leben zentral in config.js.
+// WEIGHTS, USER_SCALING_THRESHOLDS und PROJECT_TYPE_MULTIPLIERS leben zentral
+// in config.js (siehe import oben).
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Aufschlag-Multiplikator je Projekttyp.
- * @type {Readonly<Record<'Greenfield' | 'Brownfield' | 'Migration', number>>}
- */
-export const PROJECT_TYPE_MULTIPLIERS = Object.freeze({
-  Greenfield: 1.0,
-  Brownfield: 1.2,
-  Migration: 1.35,
-});
 
 /**
  * Komplexitäts-Puffer (15% für Unvorhergesehenes), multiplikativ auf typeEffort.
