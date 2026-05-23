@@ -16,30 +16,14 @@ import {
   WEIGHTS,
   USER_SCALING_THRESHOLDS,
   PROJECT_TYPE_MULTIPLIERS,
+  COMPLEXITY_BUFFER,
+  RANGE_FACTORS,
 } from './config.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten (BRIEFING.md → "Parameter-Gewichte")
-// WEIGHTS, USER_SCALING_THRESHOLDS und PROJECT_TYPE_MULTIPLIERS leben zentral
-// in config.js (siehe import oben).
+// Alle Schätzformel-Konstanten leben zentral in config.js (siehe import oben).
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Komplexitäts-Puffer (15% für Unvorhergesehenes), multiplikativ auf typeEffort.
- */
-export const COMPLEXITY_BUFFER = 1.15;
-
-/**
- * Range-Faktoren für die Pessimistisch / Wahrscheinlich / Optimistisch-Bandbreite.
- *   min:    -15% gegenüber likely
- *   likely:  100% (Referenz)
- *   max:    +25% gegenüber likely
- */
-export const RANGE_FACTORS = Object.freeze({
-  min: 0.85,
-  likely: 1.0,
-  max: 1.25,
-});
 
 /**
  * Phasen-Aufteilung des Gesamtaufwands (Summe der Shares = 1.0).

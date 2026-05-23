@@ -89,6 +89,28 @@ export const PROJECT_TYPE_MULTIPLIERS = Object.freeze({
   Migration: 1.35,
 });
 
+/**
+ * Komplexitäts-Puffer (15% für Unvorhergesehenes), multiplikativ auf
+ * typeEffort. Verändert man diesen Wert, wird die gesamte Schätzung
+ * pauschal angehoben/abgesenkt.
+ */
+export const COMPLEXITY_BUFFER = 1.15;
+
+/**
+ * Range-Faktoren für die Pessimistisch / Wahrscheinlich / Optimistisch-
+ * Bandbreite, multiplikativ auf totalEffort.
+ *   min:    -15% gegenüber likely
+ *   likely:  100% (Referenz)
+ *   max:    +25% gegenüber likely
+ *
+ * Wird in `calculateEstimation` (estimation.js) zur Range-Erzeugung benutzt.
+ */
+export const RANGE_FACTORS = Object.freeze({
+  min: 0.85,
+  likely: 1.0,
+  max: 1.25,
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PREISBASIS — Default-Tagessatz (Sprint-2-A2 erlaubt User-Override)
 // (wird im letzten Mini-Commit dieses Refactors befüllt)

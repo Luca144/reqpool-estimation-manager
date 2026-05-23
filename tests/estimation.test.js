@@ -3,12 +3,12 @@ import {
   WEIGHTS,
   USER_SCALING_THRESHOLDS,
   PROJECT_TYPE_MULTIPLIERS,
+  COMPLEXITY_BUFFER,
+  RANGE_FACTORS,
 } from '../js/config.js';
 import {
   PHASE_DISTRIBUTION,
   TAGESSATZ_EUR,
-  COMPLEXITY_BUFFER,
-  RANGE_FACTORS,
   calculateBaseEffort,
   getUserScalingFactor,
   getProjectTypeMultiplier,
