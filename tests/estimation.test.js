@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { WEIGHTS } from '../js/config.js';
 import {
-  WEIGHTS,
   USER_SCALING_THRESHOLDS,
   PROJECT_TYPE_MULTIPLIERS,
   PHASE_DISTRIBUTION,

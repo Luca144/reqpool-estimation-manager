@@ -25,12 +25,30 @@
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHÄTZFORMEL — Gewichte, Skalierung, Multiplikatoren, Phasen
-// (wird in den nachfolgenden Mini-Commits dieses Refactors befüllt)
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * PT-Aufwand pro Einheit eines Parameters (Basis-RE-Aufwand).
+ *
+ * Wird in `calculateBaseEffort` (estimation.js) als reine Multiplikator-
+ * Tabelle benutzt und in `sensitivity.js` zur Cost-Driver-Berechnung.
+ * Anpassung dieser Werte → die ganze Schätzformel zieht nach, ohne dass
+ * Code in estimation.js angefasst werden muss.
+ *
+ * @type {Readonly<{ pages: number, useCases: number, businessObjects: number, interfaces: number, batches: number, languages: number, roles: number }>}
+ */
+export const WEIGHTS = Object.freeze({
+  pages: 0.8,
+  useCases: 2.5,
+  businessObjects: 1.2,
+  interfaces: 3.0,
+  batches: 1.5,
+  // Languages: erste Sprache kostet nichts extra, jede weitere 0.5 PT
+  languages: 0.5,
+  roles: 1.8,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PREISBASIS — Default-Tagessatz (Sprint-2-A2 erlaubt User-Override)
 // (wird im letzten Mini-Commit dieses Refactors befüllt)
 // ─────────────────────────────────────────────────────────────────────────────
-
-export {};

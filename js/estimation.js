@@ -12,24 +12,12 @@
  * Spezifikation siehe BRIEFING.md, Abschnitt "Schätzlogik".
  */
 
+import { WEIGHTS } from './config.js';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten (BRIEFING.md → "Parameter-Gewichte")
+// WEIGHTS lebt zentral in config.js (siehe import oben).
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * PT-Aufwand pro Einheit eines Parameters (Basis-RE-Aufwand).
- * @type {Readonly<{ pages: number, useCases: number, businessObjects: number, interfaces: number, batches: number, languages: number, roles: number }>}
- */
-export const WEIGHTS = Object.freeze({
-  pages: 0.8,
-  useCases: 2.5,
-  businessObjects: 1.2,
-  interfaces: 3.0,
-  batches: 1.5,
-  // Languages: erste Sprache kostet nichts extra, jede weitere 0.5 PT
-  languages: 0.5,
-  roles: 1.8,
-});
 
 /**
  * Stufen-basierter User-Scaling-Faktor.

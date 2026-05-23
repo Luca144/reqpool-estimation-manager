@@ -17,7 +17,8 @@
  *      Hebel ist (z.B. Großprojekte oder kleine Projekte mit viel Nutzern).
  */
 
-import { WEIGHTS, getUserScalingFactor } from './estimation.js';
+import { WEIGHTS } from './config.js';
+import { getUserScalingFactor } from './estimation.js';
 import { FIELD_SPECS, FIELD_LABELS } from './validation.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
