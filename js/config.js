@@ -48,6 +48,30 @@ export const WEIGHTS = Object.freeze({
   roles: 1.8,
 });
 
+/**
+ * Stufen-basierter User-Scaling-Faktor.
+ *
+ * Jede Stufe gilt bis einschließlich `upTo` Usern. Die letzte Stufe
+ * (upTo: Infinity) fängt alle größeren Werte ab. Wird in
+ * `getUserScalingFactor` (estimation.js) als Lookup-Tabelle benutzt.
+ *
+ * Grenzwert-Konvention (Briefing-Tests: "10/11, 50/51, 200/201"):
+ *   users <= 10   → 1.00
+ *   users <= 50   → 1.10
+ *   users <= 200  → 1.25
+ *   users <= 1000 → 1.40
+ *   sonst         → 1.60
+ *
+ * @type {ReadonlyArray<Readonly<{ upTo: number, factor: number }>>}
+ */
+export const USER_SCALING_THRESHOLDS = Object.freeze([
+  Object.freeze({ upTo: 10, factor: 1.0 }),
+  Object.freeze({ upTo: 50, factor: 1.1 }),
+  Object.freeze({ upTo: 200, factor: 1.25 }),
+  Object.freeze({ upTo: 1000, factor: 1.4 }),
+  Object.freeze({ upTo: Infinity, factor: 1.6 }),
+]);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PREISBASIS — Default-Tagessatz (Sprint-2-A2 erlaubt User-Override)
 // (wird im letzten Mini-Commit dieses Refactors befüllt)
