@@ -136,7 +136,12 @@ export function renderSensitivitySliders(container, originalParams, topDrivers, 
     sliderEl.className = 'sensitivity-slider';
     sliderEl.dataset.key = driver.key;
 
+    // Eindeutige ID pro Slider, damit das <label> via for-Attribut korrekt
+    // mit dem Input verknüpft ist (Accessibility + DevTools-Issue-Check).
+    const inputId = `sensitivity-slider-${driver.key}`;
+
     const labelRow = document.createElement('label');
+    labelRow.setAttribute('for', inputId);
 
     const labelSpan = document.createElement('span');
     labelSpan.className = 'sensitivity-slider__label';
@@ -152,6 +157,7 @@ export function renderSensitivitySliders(container, originalParams, topDrivers, 
     const { min, max } = computeSliderRange(driver.key, driver.currentValue);
     const input = document.createElement('input');
     input.type = 'range';
+    input.id = inputId;
     input.min = String(min);
     input.max = String(max);
     input.step = '1';
