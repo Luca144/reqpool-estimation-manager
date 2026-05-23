@@ -131,5 +131,16 @@ export const PHASE_DISTRIBUTION = Object.freeze([
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PREISBASIS — Default-Tagessatz (Sprint-2-A2 erlaubt User-Override)
-// (wird im letzten Mini-Commit dieses Refactors befüllt)
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Default-Tagessatz in EUR für die Umrechnung Personentage → Kosten.
+ *
+ * Verwendet, wenn der User in Sprint-2-A2 keinen eigenen Tagessatz im
+ * Settings-Modal überschreibt. Aktueller ReqPOOL-Standardsatz.
+ *
+ * Hinweis: Hieß früher `TAGESSATZ_EUR` in estimation.js. Umbenannt im
+ * Schritt-0-Refactor, weil A2 dem User erlaubt, einen abweichenden
+ * Tagessatz zu setzen — der hier ist der „Default".
+ */
+export const DEFAULT_TAGESSATZ = 1200;

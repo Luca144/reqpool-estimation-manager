@@ -19,18 +19,14 @@ import {
   COMPLEXITY_BUFFER,
   RANGE_FACTORS,
   PHASE_DISTRIBUTION,
+  DEFAULT_TAGESSATZ,
 } from './config.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten (BRIEFING.md → "Parameter-Gewichte")
-// Alle Schätzformel-Konstanten leben zentral in config.js (siehe import oben).
+// Alle Schätzformel-Konstanten und der Default-Tagessatz leben zentral in
+// config.js (siehe import oben).
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Tagessatz in EUR für die Umrechnung PT → EUR.
- * Quelle: BRIEFING.md ("TAGESSATZ_EUR = 1200").
- */
-export const TAGESSATZ_EUR = 1200;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Interne Helfer
@@ -196,9 +192,9 @@ export function calculateEstimation(params) {
   const phases = calculatePhases(totalEffort);
 
   const costs = {
-    min: min * TAGESSATZ_EUR,
-    likely: likely * TAGESSATZ_EUR,
-    max: max * TAGESSATZ_EUR,
+    min: min * DEFAULT_TAGESSATZ,
+    likely: likely * DEFAULT_TAGESSATZ,
+    max: max * DEFAULT_TAGESSATZ,
   };
 
   return { min, likely, max, phases, costs };

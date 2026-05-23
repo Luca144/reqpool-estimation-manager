@@ -6,9 +6,9 @@ import {
   COMPLEXITY_BUFFER,
   RANGE_FACTORS,
   PHASE_DISTRIBUTION,
+  DEFAULT_TAGESSATZ,
 } from '../js/config.js';
 import {
-  TAGESSATZ_EUR,
   calculateBaseEffort,
   getUserScalingFactor,
   getProjectTypeMultiplier,
@@ -68,8 +68,8 @@ describe('Konstanten', () => {
     });
   });
 
-  it('TAGESSATZ_EUR ist 1200', () => {
-    expect(TAGESSATZ_EUR).toBe(1200);
+  it('DEFAULT_TAGESSATZ ist 1200', () => {
+    expect(DEFAULT_TAGESSATZ).toBe(1200);
   });
 
   it('COMPLEXITY_BUFFER ist 1.15', () => {
@@ -394,9 +394,9 @@ describe('calculateEstimation — strukturelle Eigenschaften', () => {
 
   it('costs entsprechen PT × Tagessatz (1200 EUR)', () => {
     const result = calculateEstimation(sampleParams);
-    expect(result.costs.min).toBeCloseTo(result.min * TAGESSATZ_EUR, 5);
-    expect(result.costs.likely).toBeCloseTo(result.likely * TAGESSATZ_EUR, 5);
-    expect(result.costs.max).toBeCloseTo(result.max * TAGESSATZ_EUR, 5);
+    expect(result.costs.min).toBeCloseTo(result.min * DEFAULT_TAGESSATZ, 5);
+    expect(result.costs.likely).toBeCloseTo(result.likely * DEFAULT_TAGESSATZ, 5);
+    expect(result.costs.max).toBeCloseTo(result.max * DEFAULT_TAGESSATZ, 5);
   });
 
   it('Summe der phase.pt ergibt den likely-Wert (Phasen basieren auf totalEffort = likely)', () => {
