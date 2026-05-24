@@ -398,19 +398,19 @@ class PDFBuilder {
     this.advance(2);
   }
 
-  drawScope() {
+  drawScope(scopeIn = SCOPE_IN, scopeOut = SCOPE_OUT) {
     // "Enthalten" als Sub-Heading in Green-Dark.
     this.checkBreak(7);
     this.font({ size: 10, style: 'bold', color: COLORS.greenDark });
     this.doc.text('Enthalten:', CONTENT_LEFT, this.y);
     this.advance(5);
-    this.drawBulletList(SCOPE_IN);
+    this.drawBulletList(scopeIn);
 
     this.checkBreak(7);
     this.font({ size: 10, style: 'bold', color: COLORS.muted });
     this.doc.text('Nicht enthalten:', CONTENT_LEFT, this.y);
     this.advance(5);
-    this.drawBulletList(SCOPE_OUT);
+    this.drawBulletList(scopeOut);
   }
 
   drawAssumptions(assumptions) {
@@ -498,7 +498,9 @@ export async function exportEstimationToPDF(data) {
   builder.drawRisksList(risks);
 
   builder.drawSectionHeading('Leistungsumfang');
-  builder.drawScope();
+  // Wenn der Aufrufer dynamische Scope-Listen mitgibt (Sprint-2-B1), werden
+  // diese statt der historischen Static-Default-Listen gerendert.
+  builder.drawScope(data.scopeIn, data.scopeOut);
 
   builder.drawFootersAcrossAllPages();
 

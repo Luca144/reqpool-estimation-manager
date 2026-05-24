@@ -14,6 +14,17 @@ nicht aufgeführt.
 
 ### Added
 
+- **Scope-Konfigurator in Step 3** — die bisher statische „Enthalten / Nicht
+  enthalten"-Box wurde durch einen interaktiven Konfigurator ersetzt. 18
+  kuratierte Leistungs-Items in fünf Kategorien (Erhebung, Spezifikation,
+  Review, Übergabe, Optional/Spezial) sind als Toggle-Buttons abgebildet.
+  Click verschiebt das Item zwischen den beiden Spalten und passt die
+  Schätzung live an: Aktivierung eines optionalen Items addiert dessen
+  Default-PT-Wert auf den Gesamtaufwand, Deaktivierung eines Standard-
+  Items subtrahiert ihn. Counter, Cost-Range, Donut und Machbarkeits-
+  Karte updaten alle synchron. Beim PDF-Export werden die dynamischen
+  Listen statt der bisherigen statischen verwendet. Item-Katalog in
+  `config.js` (`SCOPE_ITEMS`), Pure-Logic in `js/scope.js`.
 - **Geplante-Dauer-Slider direkt in Step 3** — zusätzlich zum Berater-Slider
   gibt es im Machbarkeits-Block einen zweiten Slider „Geplante Dauer
   (Monate)" (Range 1–36, mit dynamischer Ober-Anhebung wenn der Step-1-

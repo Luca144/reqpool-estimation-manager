@@ -710,6 +710,130 @@ input[type='range']:focus-visible::-moz-range-thumb {
   border-left: 3px solid var(--color-grey);
 }
 
+.result__scope-intro {
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.result__scope-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  height: 20px;
+  min-width: 20px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  font-size: var(--font-xs);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.result__scope-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.scope-item {
+  margin: 0;
+  padding: 0;
+}
+
+.scope-item__toggle {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.scope-item__toggle:hover {
+  background-color: var(--color-white);
+  border-color: var(--color-border-strong);
+}
+
+.scope-item__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.scope-item__toggle:active {
+  transform: translateY(1px);
+}
+
+/* Aktiv (in Enthalten) — grüner Akzent, kräftiger Hintergrund */
+.result__scope-in .scope-item__toggle {
+  border-left-color: var(--color-success);
+  background-color: var(--color-green-10);
+}
+.result__scope-in .scope-item__toggle:hover {
+  background-color: var(--color-white);
+  border-left-color: var(--color-success);
+}
+
+/* Inaktiv (in Nicht enthalten) — gedämpft */
+.result__scope-out .scope-item__toggle {
+  border-left-color: var(--color-border-strong);
+  background-color: var(--color-bg-muted);
+  color: var(--color-text-muted);
+}
+.result__scope-out .scope-item__toggle:hover {
+  background-color: var(--color-white);
+  color: var(--color-text);
+}
+
+.scope-item__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.scope-item__name {
+  font-weight: var(--fw-semibold);
+  font-size: var(--font-sm);
+}
+
+.scope-item__pt {
+  font-size: var(--font-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scope-item__description {
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.scope-item__category {
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: var(--space-1);
+}
+
 .result__scope-heading {
   font-size: var(--font-base);
   font-weight: var(--fw-semibold);

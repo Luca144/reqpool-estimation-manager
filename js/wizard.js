@@ -35,6 +35,12 @@ import {
 } from './sensitivity.js';
 import { exportEstimationToPDF } from './pdf.js';
 import { assessFeasibility } from './feasibility.js';
+import {
+  getDefaultIncludedIds,
+  getScopeAdjustment,
+  applyScopeAdjustmentToEstimation,
+} from './scope.js';
+import { SCOPE_ITEMS, SCOPE_CATEGORY_LABELS } from './config.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -96,6 +102,11 @@ const state = {
   sensitivityOverrides: {},
   // Berater-Anzahl für den Machbarkeits-Check in Step 3.
   consultantCount: DEFAULT_CONSULTANT_COUNT,
+  // Set der aktuell inkludierten Scope-Item-IDs. `null` = noch nicht
+  // initialisiert (Step 3 noch nicht erreicht). Bei Step-3-Eintritt mit
+  // den Default-Includes befüllt, danach persistent bis "Neue Schätzung".
+  /** @type {Set<string> | null} */
+  includedScopeIds: null,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -362,6 +373,7 @@ function handleReset() {
   state.sensitivityTopDrivers = null;
   state.sensitivityOverrides = {};
   state.consultantCount = DEFAULT_CONSULTANT_COUNT;
+  state.includedScopeIds = null;
 
   const step1Form = document.querySelector('[data-form="step1"]');
   const step2Form = document.querySelector('[data-form="step2"]');
@@ -449,12 +461,24 @@ function calculateAndRenderResult() {
 
   state.estimation = estimation;
 
-  renderSummary(estimation);
+  // Scope initialisieren (nur beim ersten Step-3-Eintritt seit Reset).
+  if (state.includedScopeIds === null) {
+    state.includedScopeIds = new Set(getDefaultIncludedIds([...SCOPE_ITEMS]));
+  }
+
+  // Wenn Scope vom Default abweicht, Estimation entsprechend anpassen.
+  const scopeAdjustment = getScopeAdjustment([...SCOPE_ITEMS], [...state.includedScopeIds]);
+  const renderedEstimation = scopeAdjustment === 0
+    ? estimation
+    : applyScopeAdjustmentToEstimation(estimation, scopeAdjustment, getTagessatz());
+
+  renderSummary(renderedEstimation);
   renderAssumptions(params);
   renderRisks(params);
-  renderChart(estimation);
+  renderChart(renderedEstimation);
   renderSensitivity(params);
   renderFeasibility();
+  renderScope();
 }
 
 /**
@@ -568,6 +592,12 @@ function updateFeasibilityCard() {
   if (effectiveParams) {
     try {
       likelyPT = calculateEstimation(effectiveParams, getTagessatz()).likely;
+      // Scope-Adjustment auch hier einbeziehen, damit die Machbarkeits-
+      // Berechnung den selben Aufwand reflektiert wie der Counter.
+      if (state.includedScopeIds) {
+        const adjustment = getScopeAdjustment([...SCOPE_ITEMS], [...state.includedScopeIds]);
+        likelyPT = Math.max(0, likelyPT + adjustment);
+      }
     } catch {
       // Defensive: bei Pure-Function-Guard alten Wert behalten.
     }
@@ -638,12 +668,25 @@ function applyOverrides(overrides) {
   state.sensitivityOverrides = overrides;
 
   const params = { ...state.sensitivityOriginalParams, ...overrides };
+  const tagessatz = getTagessatz();
 
   let estimation;
   try {
-    estimation = calculateEstimation(params, getTagessatz());
+    estimation = calculateEstimation(params, tagessatz);
   } catch {
     return;
+  }
+
+  // Scope-Adjustment auf die Estimation anwenden (falls vom Default abweichend).
+  if (state.includedScopeIds) {
+    const adjustment = getScopeAdjustment([...SCOPE_ITEMS], [...state.includedScopeIds]);
+    if (adjustment !== 0) {
+      try {
+        estimation = applyScopeAdjustmentToEstimation(estimation, adjustment, tagessatz);
+      } catch (err) {
+        console.error('Scope-Adjustment fehlgeschlagen:', err);
+      }
+    }
   }
 
   const counter = document.querySelector('[data-counter]');
@@ -665,7 +708,7 @@ function applyOverrides(overrides) {
     }
   }
 
-  // Feasibility-Karte ist live mit Sensitivity-Overrides verbunden.
+  // Feasibility-Karte ist live mit Sensitivity- UND Scope-Overrides verbunden.
   updateFeasibilityCard();
 }
 
@@ -794,8 +837,31 @@ async function handleExportPDF() {
 
   try {
     const currentParams = { ...state.sensitivityOriginalParams, ...state.sensitivityOverrides };
-    const estimation = calculateEstimation(currentParams, getTagessatz());
+    const tagessatz = getTagessatz();
+    let estimation = calculateEstimation(currentParams, tagessatz);
+
+    // Scope-Adjustment auf die Estimation anwenden, damit das PDF die im
+    // UI sichtbaren Zahlen reproduziert.
+    if (state.includedScopeIds) {
+      const adjustment = getScopeAdjustment([...SCOPE_ITEMS], [...state.includedScopeIds]);
+      if (adjustment !== 0) {
+        estimation = applyScopeAdjustmentToEstimation(estimation, adjustment, tagessatz);
+      }
+    }
+
     const sensitivityModified = Object.keys(state.sensitivityOverrides ?? {}).length > 0;
+
+    // Dynamische Scope-Listen für das PDF basierend auf der aktuellen Auswahl.
+    let scopeIn;
+    let scopeOut;
+    if (state.includedScopeIds) {
+      scopeIn = SCOPE_ITEMS
+        .filter(i => state.includedScopeIds.has(i.id))
+        .map(i => i.name);
+      scopeOut = SCOPE_ITEMS
+        .filter(i => !state.includedScopeIds.has(i.id))
+        .map(i => i.name);
+    }
 
     await exportEstimationToPDF({
       projectInfo: { ...state.step1Values },
@@ -804,6 +870,8 @@ async function handleExportPDF() {
       assumptions: generateAssumptions(currentParams),
       risks: generateRisks(currentParams),
       sensitivityModified,
+      scopeIn,
+      scopeOut,
     });
   } catch (err) {
     console.error('PDF-Export fehlgeschlagen:', err);
@@ -866,6 +934,106 @@ function clearStep3Display() {
   if (monthsValue) monthsValue.textContent = '6';
   const feasibilityCard = document.querySelector('[data-feasibility-card]');
   if (feasibilityCard) delete feasibilityCard.dataset.status;
+
+  // Scope-Listen leeren.
+  const scopeListIn = document.querySelector('[data-scope-list-in]');
+  const scopeListOut = document.querySelector('[data-scope-list-out]');
+  if (scopeListIn) scopeListIn.innerHTML = '';
+  if (scopeListOut) scopeListOut.innerHTML = '';
+  const scopeCountIn = document.querySelector('[data-scope-count-in]');
+  const scopeCountOut = document.querySelector('[data-scope-count-out]');
+  if (scopeCountIn) scopeCountIn.textContent = '0';
+  if (scopeCountOut) scopeCountOut.textContent = '0';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Scope-Konfigurator (Sprint-2-B1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderScope() {
+  const listIn = document.querySelector('[data-scope-list-in]');
+  const listOut = document.querySelector('[data-scope-list-out]');
+  const countIn = document.querySelector('[data-scope-count-in]');
+  const countOut = document.querySelector('[data-scope-count-out]');
+  if (!listIn || !listOut) return;
+
+  listIn.innerHTML = '';
+  listOut.innerHTML = '';
+
+  const included = state.includedScopeIds ?? new Set();
+
+  for (const item of SCOPE_ITEMS) {
+    const isIncluded = included.has(item.id);
+    const targetList = isIncluded ? listIn : listOut;
+    targetList.appendChild(buildScopeItemElement(item, isIncluded));
+  }
+
+  if (countIn) countIn.textContent = String(included.size);
+  if (countOut) countOut.textContent = String(SCOPE_ITEMS.length - included.size);
+}
+
+function buildScopeItemElement(item, isIncluded) {
+  const li = document.createElement('li');
+  li.className = 'scope-item';
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'scope-item__toggle';
+  button.dataset.scopeId = item.id;
+  button.setAttribute('aria-pressed', isIncluded ? 'true' : 'false');
+  button.setAttribute(
+    'aria-label',
+    `${item.name}, ${isIncluded ? 'enthalten' : 'nicht enthalten'}. Klick zum Wechseln.`,
+  );
+  button.addEventListener('click', handleScopeToggle);
+
+  const header = document.createElement('div');
+  header.className = 'scope-item__header';
+
+  const name = document.createElement('span');
+  name.className = 'scope-item__name';
+  name.textContent = item.name;
+
+  const pt = document.createElement('span');
+  pt.className = 'scope-item__pt';
+  pt.textContent = `${item.defaultPT} PT`;
+
+  header.appendChild(name);
+  header.appendChild(pt);
+
+  const desc = document.createElement('span');
+  desc.className = 'scope-item__description';
+  desc.textContent = item.description;
+
+  const cat = document.createElement('span');
+  cat.className = 'scope-item__category';
+  cat.textContent = SCOPE_CATEGORY_LABELS[item.category] ?? item.category;
+
+  button.appendChild(header);
+  button.appendChild(desc);
+  button.appendChild(cat);
+  li.appendChild(button);
+
+  return li;
+}
+
+function handleScopeToggle(event) {
+  const button = event.currentTarget;
+  const id = button?.dataset.scopeId;
+  if (!id || !state.includedScopeIds) return;
+
+  if (state.includedScopeIds.has(id)) {
+    state.includedScopeIds.delete(id);
+  } else {
+    state.includedScopeIds.add(id);
+  }
+
+  renderScope();
+  // Re-render der live-anhängigen Anzeigen (Counter, Cost-Range, Chart,
+  // Feasibility-Karte). applyOverrides berücksichtigt den neuen Scope-State.
+  if (state.sensitivityOriginalParams) {
+    applyOverrides(state.sensitivityOverrides);
+  }
 }
 
 function handleResetSensitivity() {

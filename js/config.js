@@ -213,6 +213,213 @@ export function resetTagessatz() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SCOPE — Kuratierter Katalog der Leistungsbausteine (Sprint-2-B1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Anzeigenamen für die fünf Scope-Kategorien (für die UI-Gruppierung).
+ *
+ * @type {Readonly<Record<string, string>>}
+ */
+export const SCOPE_CATEGORY_LABELS = Object.freeze({
+  erhebung: 'Erhebung',
+  spezifikation: 'Spezifikation',
+  review: 'Review',
+  uebergabe: 'Übergabe',
+  optional: 'Optional / Spezial',
+});
+
+/**
+ * Anzeigereihenfolge der Kategorien (analog zur Methodik: zeitlicher Verlauf
+ * + optional/Spezial am Ende).
+ */
+export const SCOPE_CATEGORY_ORDER = Object.freeze([
+  'erhebung',
+  'spezifikation',
+  'review',
+  'uebergabe',
+  'optional',
+]);
+
+/**
+ * Kuratierter Katalog der Scope-Items (Leistungsbausteine).
+ *
+ * Jedes Item beschreibt einen Baustein des RE-Auftrags mit einem geschätzten
+ * Default-Aufwand in PT. `defaultIncluded` markiert, ob das Item bei einem
+ * Standard-ReqPOOL-Projekt initial enthalten ist — entsprechend wird die
+ * Step-3-Anzeige initial in „Enthalten" / „Nicht enthalten" aufgeteilt.
+ *
+ * Die Schätzungs-Anpassung in Step 3 läuft als Delta: solange der User keine
+ * Toggles bedient, ist die Anpassung 0 und die Step-2-Schätzung bleibt
+ * unverändert. Beim Ein-/Aus-Toggeln verändert sich der Gesamtaufwand um
+ * (item.defaultPT) addiert bzw. subtrahiert (siehe scope.js).
+ *
+ * @type {ReadonlyArray<Readonly<{
+ *   id: string,
+ *   name: string,
+ *   description: string,
+ *   defaultPT: number,
+ *   defaultIncluded: boolean,
+ *   category: string
+ * }>>}
+ */
+export const SCOPE_ITEMS = Object.freeze([
+  // ── Erhebung ──────────────────────────────────────────────────────────
+  Object.freeze({
+    id: 'stakeholder-interviews',
+    name: 'Stakeholder-Interviews',
+    description: 'Einzelgespräche mit identifizierten Stakeholdern zur Bedarfsklärung.',
+    defaultPT: 5,
+    defaultIncluded: true,
+    category: 'erhebung',
+  }),
+  Object.freeze({
+    id: 'workshop-moderation',
+    name: 'Workshop-Moderation',
+    description: 'Moderation strukturierter Workshops mit Fachbereich.',
+    defaultPT: 8,
+    defaultIncluded: true,
+    category: 'erhebung',
+  }),
+  Object.freeze({
+    id: 'anforderungswerkstatt',
+    name: 'Anforderungswerkstatt',
+    description: 'Erhebungs-Sessions zur kollaborativen Anforderungserarbeitung.',
+    defaultPT: 6,
+    defaultIncluded: true,
+    category: 'erhebung',
+  }),
+  Object.freeze({
+    id: 'bestandsanalyse',
+    name: 'Bestandsanalyse',
+    description: 'Analyse vorhandener Systeme und Dokumentation — typisch bei Brownfield/Migration.',
+    defaultPT: 10,
+    defaultIncluded: false,
+    category: 'erhebung',
+  }),
+
+  // ── Spezifikation ─────────────────────────────────────────────────────
+  Object.freeze({
+    id: 'usecase-dokumentation',
+    name: 'Use-Case-Dokumentation',
+    description: 'Strukturierte Beschreibung aller fachlichen Use Cases mit Vor- und Nachbedingungen.',
+    defaultPT: 12,
+    defaultIncluded: true,
+    category: 'spezifikation',
+  }),
+  Object.freeze({
+    id: 'schnittstellenbeschreibungen',
+    name: 'Schnittstellenbeschreibungen',
+    description: 'Fachliche und technische Spezifikation der Drittsystem-Schnittstellen.',
+    defaultPT: 6,
+    defaultIncluded: true,
+    category: 'spezifikation',
+  }),
+  Object.freeze({
+    id: 'datenmodell',
+    name: 'Datenmodell',
+    description: 'Konzeptionelles Datenmodell mit Entitäten und Beziehungen.',
+    defaultPT: 8,
+    defaultIncluded: true,
+    category: 'spezifikation',
+  }),
+  Object.freeze({
+    id: 'glossar',
+    name: 'Glossar',
+    description: 'Fachliches Glossar mit konsolidierten Begriffsdefinitionen.',
+    defaultPT: 3,
+    defaultIncluded: true,
+    category: 'spezifikation',
+  }),
+  Object.freeze({
+    id: 'nfr-katalog',
+    name: 'NFR-Katalog',
+    description: 'Katalog nicht-funktionaler Anforderungen (Performance, Security, Verfügbarkeit, …).',
+    defaultPT: 5,
+    defaultIncluded: true,
+    category: 'spezifikation',
+  }),
+
+  // ── Review ────────────────────────────────────────────────────────────
+  Object.freeze({
+    id: 'fachliche-reviews',
+    name: 'Fachliche Reviews',
+    description: 'Reviewzyklen mit dem Fachbereich auf Inhalt und Vollständigkeit.',
+    defaultPT: 6,
+    defaultIncluded: true,
+    category: 'review',
+  }),
+  Object.freeze({
+    id: 'technische-reviews',
+    name: 'Technische Reviews',
+    description: 'Reviewzyklen mit Architektur und Entwicklung auf Umsetzbarkeit.',
+    defaultPT: 4,
+    defaultIncluded: true,
+    category: 'review',
+  }),
+  Object.freeze({
+    id: 'stakeholder-abstimmung',
+    name: 'Stakeholder-Abstimmung',
+    description: 'Iterative Abstimmungsrunden mit den Hauptstakeholdern.',
+    defaultPT: 4,
+    defaultIncluded: true,
+    category: 'review',
+  }),
+
+  // ── Übergabe ──────────────────────────────────────────────────────────
+  Object.freeze({
+    id: 'abnahme-kriterien',
+    name: 'Abnahme-Kriterien',
+    description: 'Definition messbarer Abnahmekriterien je Use Case.',
+    defaultPT: 3,
+    defaultIncluded: true,
+    category: 'uebergabe',
+  }),
+  Object.freeze({
+    id: 'uebergabe-workshops',
+    name: 'Übergabe-Workshops',
+    description: 'Workshops zur Übergabe der Spezifikationen an Entwicklung und Test.',
+    defaultPT: 4,
+    defaultIncluded: true,
+    category: 'uebergabe',
+  }),
+  Object.freeze({
+    id: 'wissenstransfer',
+    name: 'Wissens-Transfer',
+    description: 'Dokumentierte Übergabe in die Linienorganisation (Schulungsmaterialien, Doku).',
+    defaultPT: 5,
+    defaultIncluded: false,
+    category: 'uebergabe',
+  }),
+
+  // ── Optional / Spezial ────────────────────────────────────────────────
+  Object.freeze({
+    id: 'testunterstuetzung',
+    name: 'Testunterstützung',
+    description: 'Begleitung der Testphase, Beratung bei Defect-Management.',
+    defaultPT: 8,
+    defaultIncluded: false,
+    category: 'optional',
+  }),
+  Object.freeze({
+    id: 'change-request-management',
+    name: 'Change-Request-Management',
+    description: 'Bewertung und Pflege von Anforderungsänderungen nach Spec-Freeze.',
+    defaultPT: 5,
+    defaultIncluded: false,
+    category: 'optional',
+  }),
+  Object.freeze({
+    id: 'compliance-dokumentation',
+    name: 'Compliance-Dokumentation',
+    description: 'Spezifische Compliance-Belege (DSGVO, BaFin, ISO 27001, …).',
+    defaultPT: 6,
+    defaultIncluded: false,
+    category: 'optional',
+  }),
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MACHBARKEIT — Werktage pro Monat, Toleranzband für Plan-vs-Realismus
 // ─────────────────────────────────────────────────────────────────────────────
 
