@@ -484,16 +484,31 @@ function renderFeasibility() {
   }
   container.hidden = false;
 
-  const slider = document.getElementById('consultantCount');
-  const valueEl = document.querySelector('[data-consultant-value]');
-  if (slider) {
-    slider.value = String(state.consultantCount);
+  // Berater-Slider
+  const consultantSlider = document.getElementById('consultantCount');
+  const consultantValueEl = document.querySelector('[data-consultant-value]');
+  if (consultantSlider) {
+    consultantSlider.value = String(state.consultantCount);
     // Listener idempotent: wir entfernen ggf. vorhandenen und binden neu —
     // verhindert doppelte Aufrufe bei wiederholtem Step-3-Eintritt.
-    slider.removeEventListener('input', handleConsultantSliderInput);
-    slider.addEventListener('input', handleConsultantSliderInput);
+    consultantSlider.removeEventListener('input', handleConsultantSliderInput);
+    consultantSlider.addEventListener('input', handleConsultantSliderInput);
   }
-  if (valueEl) valueEl.textContent = String(state.consultantCount);
+  if (consultantValueEl) consultantValueEl.textContent = String(state.consultantCount);
+
+  // Plannned-Monate-Slider — bidirektional mit Step 1 verbunden. Max wächst
+  // dynamisch mit, damit auch eine in Step 1 eingegebene Dauer von z.B.
+  // 50 Monaten noch im Slider erreichbar ist.
+  const monthsSlider = document.getElementById('plannedMonthsSlider');
+  const monthsValueEl = document.querySelector('[data-planned-months-value]');
+  if (monthsSlider) {
+    const dynamicMax = Math.max(36, Math.ceil(plannedMonths * 2));
+    monthsSlider.max = String(dynamicMax);
+    monthsSlider.value = String(plannedMonths);
+    monthsSlider.removeEventListener('input', handlePlannedMonthsSliderInput);
+    monthsSlider.addEventListener('input', handlePlannedMonthsSliderInput);
+  }
+  if (monthsValueEl) monthsValueEl.textContent = String(plannedMonths);
 
   updateFeasibilityCard();
 }
@@ -504,6 +519,28 @@ function handleConsultantSliderInput(event) {
   state.consultantCount = v;
   const valueEl = document.querySelector('[data-consultant-value]');
   if (valueEl) valueEl.textContent = String(v);
+  updateFeasibilityCard();
+}
+
+/**
+ * Bewegt der User in Step 3 den „Geplante Dauer"-Slider, wird der Wert
+ * bidirektional in state.step1Values UND in das Step-1-DOM-Input geschrieben.
+ * Damit ist die Wahrheit für plannedDurationMonths weiterhin Single Source.
+ */
+function handlePlannedMonthsSliderInput(event) {
+  const v = Number(event.target.value);
+  if (!Number.isFinite(v) || v < 1) return;
+
+  state.step1Values.plannedDurationMonths = String(v);
+
+  const valueEl = document.querySelector('[data-planned-months-value]');
+  if (valueEl) valueEl.textContent = String(v);
+
+  // Step-1-Form-Input synchronisieren, damit der User bei "Zurück" denselben
+  // Wert sieht und nichts Magisches passiert.
+  const step1Input = document.getElementById('plannedDurationMonths');
+  if (step1Input) step1Input.value = String(v);
+
   updateFeasibilityCard();
 }
 
@@ -819,6 +856,14 @@ function clearStep3Display() {
   if (consultantSlider) consultantSlider.value = String(DEFAULT_CONSULTANT_COUNT);
   const consultantValue = document.querySelector('[data-consultant-value]');
   if (consultantValue) consultantValue.textContent = String(DEFAULT_CONSULTANT_COUNT);
+  // PlannedMonths-Slider auch zurücksetzen (Default = 6 wie im HTML).
+  const monthsSlider = document.getElementById('plannedMonthsSlider');
+  if (monthsSlider) {
+    monthsSlider.max = '36';
+    monthsSlider.value = '6';
+  }
+  const monthsValue = document.querySelector('[data-planned-months-value]');
+  if (monthsValue) monthsValue.textContent = '6';
   const feasibilityCard = document.querySelector('[data-feasibility-card]');
   if (feasibilityCard) delete feasibilityCard.dataset.status;
 }

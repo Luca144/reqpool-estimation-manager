@@ -14,6 +14,14 @@ nicht aufgeführt.
 
 ### Added
 
+- **Geplante-Dauer-Slider direkt in Step 3** — zusätzlich zum Berater-Slider
+  gibt es im Machbarkeits-Block einen zweiten Slider „Geplante Dauer
+  (Monate)" (Range 1–36, mit dynamischer Ober-Anhebung wenn der Step-1-
+  Wert höher ist). Bewegung des Sliders aktualisiert sowohl die
+  Machbarkeits-Karte als auch das Step-1-Input bidirektional — der User
+  muss nicht mehr zwischen Steps wechseln, um die Plan-Annahmen zu
+  variieren. Der Block bleibt weiterhin versteckt, solange in Step 1
+  keine Dauer eingegeben wurde.
 - **Erweiterte Sensitivity-Slider** — unter den drei Top-Slidern in Step 3
   gibt es jetzt einen aufklappbaren Bereich „Weitere Parameter anpassen",
   der die übrigen fünf Parameter als zusätzliche Slider anbietet. Damit
