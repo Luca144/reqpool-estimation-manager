@@ -492,6 +492,8 @@ function renderFeasibility() {
 
 function handleConsultantSliderInput(event) {
   const v = Number(event.target.value);
+  // eslint-disable-next-line no-console
+  console.log('[feasibility] consultant slider input:', event.target.value, '→ parsed:', v);
   if (!Number.isFinite(v) || v < 1) return;
   state.consultantCount = v;
   const valueEl = document.querySelector('[data-consultant-value]');
@@ -535,6 +537,16 @@ function updateFeasibilityCard() {
     console.error('Feasibility-Berechnung fehlgeschlagen:', err);
     return;
   }
+
+  // eslint-disable-next-line no-console
+  console.log('[feasibility] update card:', {
+    likelyPT,
+    plannedMonths,
+    consultantCount: state.consultantCount,
+    status: result.status,
+    realisticMin: result.realisticMonthsMin,
+    realisticMax: result.realisticMonthsMax,
+  });
 
   card.dataset.feasibilityStatus = result.status;
   statusEl.textContent = FEASIBILITY_STATUS_LABELS[result.status];
