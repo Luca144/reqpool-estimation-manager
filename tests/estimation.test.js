@@ -392,11 +392,28 @@ describe('calculateEstimation — strukturelle Eigenschaften', () => {
     expect(result.likely).toBeLessThan(result.max);
   });
 
-  it('costs entsprechen PT × Tagessatz (1200 EUR)', () => {
+  it('costs entsprechen PT × Tagessatz (Default 1200 EUR)', () => {
     const result = calculateEstimation(sampleParams);
     expect(result.costs.min).toBeCloseTo(result.min * DEFAULT_TAGESSATZ, 5);
     expect(result.costs.likely).toBeCloseTo(result.likely * DEFAULT_TAGESSATZ, 5);
     expect(result.costs.max).toBeCloseTo(result.max * DEFAULT_TAGESSATZ, 5);
+  });
+
+  it('costs skalieren mit dem custom Tagessatz-Parameter', () => {
+    const result = calculateEstimation(sampleParams, 1500);
+    expect(result.costs.likely).toBeCloseTo(result.likely * 1500, 5);
+    expect(result.costs.min).toBeCloseTo(result.min * 1500, 5);
+    expect(result.costs.max).toBeCloseTo(result.max * 1500, 5);
+  });
+
+  it('wirft RangeError bei Tagessatz ≤ 0', () => {
+    expect(() => calculateEstimation(sampleParams, 0)).toThrow(RangeError);
+    expect(() => calculateEstimation(sampleParams, -100)).toThrow(RangeError);
+  });
+
+  it('wirft TypeError bei nicht-numerischem Tagessatz', () => {
+    expect(() => calculateEstimation(sampleParams, '1200')).toThrow(TypeError);
+    expect(() => calculateEstimation(sampleParams, NaN)).toThrow(TypeError);
   });
 
   it('Summe der phase.pt ergibt den likely-Wert (Phasen basieren auf totalEffort = likely)', () => {

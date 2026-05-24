@@ -14,6 +14,15 @@ nicht aufgeführt.
 
 ### Added
 
+- **Konfigurierbarer Tagessatz** — Zahnrad-Icon oben rechts im Header
+  öffnet ein Settings-Modal, in dem der User den Tagessatz (Default
+  1.200 €, max 10.000 €) für die EUR-Umrechnung überschreiben kann.
+  Der Wert wird lokal im Browser gespeichert (localStorage) und bleibt
+  über Page-Reloads erhalten. Bei aktivem Step 3 werden Counter,
+  Cost-Range, Chart und Feasibility-Karte sofort mit dem neuen Wert
+  live neu berechnet. „Auf Standard zurücksetzen"-Button im Modal
+  entfernt den Override wieder. Helper `getTagessatz()` /
+  `setTagessatz()` / `resetTagessatz()` in `js/config.js`.
 - **Machbarkeits-Check in Step 3** — ein neuer Block unter „Schritt 3:
   Schätzung" vergleicht die geplante Projektdauer aus Step 1 mit der
   errechneten realistischen Dauer und zeigt eine Ampel (grün / blau /

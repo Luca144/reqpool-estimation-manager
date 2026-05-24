@@ -136,14 +136,81 @@ export const PHASE_DISTRIBUTION = Object.freeze([
 /**
  * Default-Tagessatz in EUR für die Umrechnung Personentage → Kosten.
  *
- * Verwendet, wenn der User in Sprint-2-A2 keinen eigenen Tagessatz im
- * Settings-Modal überschreibt. Aktueller ReqPOOL-Standardsatz.
- *
- * Hinweis: Hieß früher `TAGESSATZ_EUR` in estimation.js. Umbenannt im
- * Schritt-0-Refactor, weil A2 dem User erlaubt, einen abweichenden
- * Tagessatz zu setzen — der hier ist der „Default".
+ * Verwendet, wenn der User keinen eigenen Tagessatz im Settings-Modal
+ * überschreibt. Aktueller ReqPOOL-Standardsatz.
  */
 export const DEFAULT_TAGESSATZ = 1200;
+
+/**
+ * Höchstgrenze für den vom User eingegebenen Tagessatz. Schützt davor, dass
+ * sich jemand mit einem Zahlendreher (z.B. 12000 statt 1200) selbst aus dem
+ * realistischen Bereich heraus rechnet.
+ */
+export const MAX_TAGESSATZ = 10000;
+
+/** localStorage-Key für den User-Override des Tagessatzes. */
+export const TAGESSATZ_STORAGE_KEY = 'reqpool.tagessatz';
+
+/**
+ * Liefert den aktuell gültigen Tagessatz: User-Override aus localStorage,
+ * sonst {@link DEFAULT_TAGESSATZ}. Robust gegen Umgebungen ohne localStorage
+ * (z.B. Node-only-Tests).
+ *
+ * @returns {number} Tagessatz in EUR
+ */
+export function getTagessatz() {
+  if (typeof localStorage === 'undefined') return DEFAULT_TAGESSATZ;
+  let raw;
+  try {
+    raw = localStorage.getItem(TAGESSATZ_STORAGE_KEY);
+  } catch {
+    // localStorage kann in privacy-restricted Browsern throw werfen.
+    return DEFAULT_TAGESSATZ;
+  }
+  if (raw === null || raw === '') return DEFAULT_TAGESSATZ;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0 || n > MAX_TAGESSATZ) return DEFAULT_TAGESSATZ;
+  return n;
+}
+
+/**
+ * Speichert einen User-Tagessatz in localStorage.
+ *
+ * @param {number} value Tagessatz in EUR, > 0 und ≤ {@link MAX_TAGESSATZ}
+ * @throws {TypeError} bei nicht-numerischem Input
+ * @throws {RangeError} bei Wert außerhalb (0, MAX_TAGESSATZ]
+ */
+export function setTagessatz(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new TypeError(`setTagessatz erwartet eine endliche Zahl (erhalten: ${String(value)}).`);
+  }
+  if (value <= 0) {
+    throw new RangeError(`Tagessatz muss größer als 0 sein (erhalten: ${value}).`);
+  }
+  if (value > MAX_TAGESSATZ) {
+    throw new RangeError(`Tagessatz darf höchstens ${MAX_TAGESSATZ} sein (erhalten: ${value}).`);
+  }
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(TAGESSATZ_STORAGE_KEY, String(value));
+  } catch {
+    // Storage voll oder Privacy-Mode: defensiv schlucken, der User merkt es
+    // anhand des nicht-persistierten Wertes ohnehin.
+  }
+}
+
+/**
+ * Entfernt einen eventuellen User-Override und setzt zurück auf
+ * {@link DEFAULT_TAGESSATZ}.
+ */
+export function resetTagessatz() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.removeItem(TAGESSATZ_STORAGE_KEY);
+  } catch {
+    // siehe setTagessatz
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MACHBARKEIT — Werktage pro Monat, Toleranzband für Plan-vs-Realismus

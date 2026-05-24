@@ -163,7 +163,13 @@ export function calculatePhases(totalEffort) {
  * Vollständige Schätzung: Basis-Effort → User-Scaling → Projekttyp-Aufschlag →
  * Komplexitäts-Puffer → Range (min/likely/max) → Phasen-Aufteilung → Kosten.
  *
+ * estimation.js bleibt pur: der Tagessatz wird als Parameter reingereicht
+ * (Default = {@link DEFAULT_TAGESSATZ}). Der UI-Layer (wizard.js) ruft
+ * `getTagessatz()` aus config.js auf und übergibt den Wert hier — so liest
+ * estimation.js selbst keinen localStorage.
+ *
  * @param {EstimationParams} params
+ * @param {number} [tagessatz=DEFAULT_TAGESSATZ] Tagessatz in EUR (> 0).
  * @returns {{
  *   min: number,
  *   likely: number,
@@ -172,9 +178,15 @@ export function calculatePhases(totalEffort) {
  *   costs: { min: number, likely: number, max: number }
  * }}
  */
-export function calculateEstimation(params) {
+export function calculateEstimation(params, tagessatz = DEFAULT_TAGESSATZ) {
   if (params === null || typeof params !== 'object') {
     throw new TypeError('calculateEstimation erwartet ein Parameter-Objekt.');
+  }
+  if (typeof tagessatz !== 'number' || !Number.isFinite(tagessatz)) {
+    throw new TypeError(`calculateEstimation: Tagessatz muss eine endliche Zahl sein (erhalten: ${String(tagessatz)}).`);
+  }
+  if (tagessatz <= 0) {
+    throw new RangeError(`calculateEstimation: Tagessatz muss größer als 0 sein (erhalten: ${tagessatz}).`);
   }
 
   const baseEffort = calculateBaseEffort(params);
@@ -192,9 +204,9 @@ export function calculateEstimation(params) {
   const phases = calculatePhases(totalEffort);
 
   const costs = {
-    min: min * DEFAULT_TAGESSATZ,
-    likely: likely * DEFAULT_TAGESSATZ,
-    max: max * DEFAULT_TAGESSATZ,
+    min: min * tagessatz,
+    likely: likely * tagessatz,
+    max: max * tagessatz,
   };
 
   return { min, likely, max, phases, costs };

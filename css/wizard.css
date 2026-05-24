@@ -42,6 +42,30 @@ body {
   margin: 0;
 }
 
+.app-header__settings {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast),
+              background-color var(--transition-fast),
+              border-color var(--transition-fast);
+  cursor: pointer;
+}
+.app-header__settings:hover {
+  color: var(--color-primary);
+  background-color: var(--color-royal-blue-05);
+}
+.app-header__settings:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
 /* ── Wizard-Container ───────────────────────────────────────────────────── */
 .wizard {
   flex: 1;

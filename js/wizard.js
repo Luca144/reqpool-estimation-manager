@@ -15,6 +15,13 @@
  */
 
 import { calculateEstimation } from './estimation.js';
+import {
+  getTagessatz,
+  setTagessatz,
+  resetTagessatz,
+  DEFAULT_TAGESSATZ,
+  MAX_TAGESSATZ,
+} from './config.js';
 import { generateAssumptions } from './assumptions.js';
 import { generateRisks } from './risks.js';
 import { validateStep1, validateStep2 } from './validation.js';
@@ -409,7 +416,7 @@ function updateLivePreview() {
 
   const params = buildEstimationParams();
   try {
-    const result = calculateEstimation(params);
+    const result = calculateEstimation(params, getTagessatz());
     livePt.textContent = `${formatPT(result.likely)} PT`;
     liveCost.textContent = formatEUR(result.costs.likely);
   } catch {
@@ -431,7 +438,7 @@ function calculateAndRenderResult() {
 
   let estimation;
   try {
-    estimation = calculateEstimation(params);
+    estimation = calculateEstimation(params, getTagessatz());
   } catch (err) {
     // Sollte nie eintreten — Step-2-Validation hat schon gesperrt.
     // Defensive Fallback statt Crash.
@@ -522,7 +529,7 @@ function updateFeasibilityCard() {
   let likelyPT = state.estimation.likely;
   if (effectiveParams) {
     try {
-      likelyPT = calculateEstimation(effectiveParams).likely;
+      likelyPT = calculateEstimation(effectiveParams, getTagessatz()).likely;
     } catch {
       // Defensive: bei Pure-Function-Guard alten Wert behalten.
     }
@@ -589,7 +596,7 @@ function applyOverrides(overrides) {
 
   let estimation;
   try {
-    estimation = calculateEstimation(params);
+    estimation = calculateEstimation(params, getTagessatz());
   } catch {
     return;
   }
@@ -617,6 +624,119 @@ function applyOverrides(overrides) {
   updateFeasibilityCard();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings-Modal (Tagessatz-Override)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function handleOpenSettings() {
+  const overlay = document.querySelector('[data-modal="settings"]');
+  const input = document.getElementById('settingsTagessatz');
+  if (!overlay) return;
+  overlay.hidden = false;
+  if (input) {
+    input.value = String(getTagessatz());
+    input.focus();
+    input.select();
+  }
+  // Inline-Error räumen, falls offen.
+  setSettingsError('');
+}
+
+function handleCloseSettings() {
+  const overlay = document.querySelector('[data-modal="settings"]');
+  if (overlay) overlay.hidden = true;
+  setSettingsError('');
+}
+
+function handleSaveSettings() {
+  const input = document.getElementById('settingsTagessatz');
+  if (!input) return;
+
+  const raw = input.value;
+  if (raw === '') {
+    setSettingsError('Bitte einen Tagessatz angeben.');
+    return;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) {
+    setSettingsError('Tagessatz muss eine positive Zahl sein.');
+    return;
+  }
+  if (value > MAX_TAGESSATZ) {
+    setSettingsError(`Tagessatz darf höchstens ${MAX_TAGESSATZ.toLocaleString('de-DE')} € sein.`);
+    return;
+  }
+  if (!Number.isInteger(value)) {
+    setSettingsError('Tagessatz muss eine ganze Zahl sein.');
+    return;
+  }
+
+  try {
+    setTagessatz(value);
+  } catch (err) {
+    setSettingsError(err.message);
+    return;
+  }
+
+  handleCloseSettings();
+  refreshAfterSettingsChange();
+}
+
+function handleResetSettings() {
+  resetTagessatz();
+  const input = document.getElementById('settingsTagessatz');
+  if (input) input.value = String(DEFAULT_TAGESSATZ);
+  setSettingsError('');
+  refreshAfterSettingsChange();
+}
+
+/**
+ * Wenn der User in Step 3 ist und den Tagessatz ändert, müssen Cost-Range,
+ * Counter, Chart und Feasibility-Karte live neu berechnet werden.
+ */
+function refreshAfterSettingsChange() {
+  if (state.currentStep !== 3 || !state.sensitivityOriginalParams) return;
+  // applyOverrides re-rendert alles mit dem aktuellen Tagessatz via getTagessatz()
+  applyOverrides(state.sensitivityOverrides);
+}
+
+function setSettingsError(message) {
+  const errorSlot = document.querySelector('[data-error-for="settingsTagessatz"]');
+  const input = document.getElementById('settingsTagessatz');
+  if (errorSlot) errorSlot.textContent = message;
+  if (input) {
+    if (message) input.setAttribute('aria-invalid', 'true');
+    else input.removeAttribute('aria-invalid');
+  }
+}
+
+function bindSettingsActions() {
+  const overlay = document.querySelector('[data-modal="settings"]');
+  if (!overlay) return;
+
+  const handlers = {
+    'open-settings': handleOpenSettings,
+    'close-settings': handleCloseSettings,
+    'save-settings': handleSaveSettings,
+    'reset-settings': handleResetSettings,
+  };
+  for (const [action, handler] of Object.entries(handlers)) {
+    for (const btn of document.querySelectorAll(`[data-action="${action}"]`)) {
+      btn.addEventListener('click', handler);
+    }
+  }
+
+  // Click auf Overlay (außerhalb der Modal-Karte) schließt.
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) handleCloseSettings();
+  });
+
+  // Escape-Key schließt Modal global, sofern offen.
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !overlay.hidden) handleCloseSettings();
+  });
+}
+
 async function handleExportPDF() {
   if (state.currentStep !== 3 || !state.sensitivityOriginalParams) return;
 
@@ -629,7 +749,7 @@ async function handleExportPDF() {
 
   try {
     const currentParams = { ...state.sensitivityOriginalParams, ...state.sensitivityOverrides };
-    const estimation = calculateEstimation(currentParams);
+    const estimation = calculateEstimation(currentParams, getTagessatz());
     const sensitivityModified = Object.keys(state.sensitivityOverrides ?? {}).length > 0;
 
     await exportEstimationToPDF({
@@ -786,6 +906,7 @@ function init() {
 
   bindFormInputs();
   bindFooterButtons();
+  bindSettingsActions();
 
   // Initial-Render: State und DOM in Sync bringen.
   updateProgress();

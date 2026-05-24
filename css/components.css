@@ -221,3 +221,91 @@
 .form__input[type='number'] {
   -moz-appearance: textfield;
 }
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Modal-Overlay + Karte                                                    */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(11, 18, 32, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 1000;
+  animation: modalOverlayFadeIn var(--transition-fast);
+}
+
+@keyframes modalOverlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-7);
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  animation: modalCardSlideIn var(--transition-base);
+}
+
+@keyframes modalCardSlideIn {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.modal-card__close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-xl);
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transition-fast),
+              background-color var(--transition-fast);
+}
+.modal-card__close:hover {
+  background-color: var(--color-bg-muted);
+  color: var(--color-text);
+}
+.modal-card__close:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.modal-card__title {
+  font-size: var(--font-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+  padding-right: var(--space-7); /* Platz für den Close-Button */
+}
+
+.modal-card__intro {
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+  line-height: 1.5;
+}
+
+.modal-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  flex-wrap: wrap;
+}
+.modal-card__actions-spacer {
+  flex: 1;
+}

@@ -24,6 +24,19 @@
       <span class="app-header__logo" aria-label="ReqPOOL Logo">ReqPOOL</span>
     </div>
     <h1 class="app-header__title">Aufwandsschätzung Requirements Engineering</h1>
+    <button
+      type="button"
+      class="app-header__settings"
+      data-action="open-settings"
+      aria-label="Einstellungen"
+      title="Einstellungen"
+    >
+      <!-- Zahnrad-Icon, inline-SVG damit keine externe Datei nötig ist -->
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    </button>
   </header>
 
   <main id="app" class="wizard" aria-labelledby="wizard-title">
@@ -348,6 +361,52 @@
       <button type="button" class="btn btn--secondary" data-action="new-estimation" hidden>Neue Schätzung</button>
     </footer>
   </main>
+
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <!-- Settings-Modal (Tagessatz-Override, Sprint-2-A2)                       -->
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <div class="modal-overlay" data-modal="settings" role="presentation" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="settings-title" aria-modal="true">
+      <button
+        type="button"
+        class="modal-card__close"
+        data-action="close-settings"
+        aria-label="Einstellungen schließen"
+      >×</button>
+      <h2 id="settings-title" class="modal-card__title">Einstellungen</h2>
+      <p class="modal-card__intro">
+        Lege fest, mit welchem Tagessatz die Schätzung in Euro umgerechnet wird.
+        Der Wert wird lokal im Browser gespeichert.
+      </p>
+      <div class="form__field">
+        <label class="form__label" for="settingsTagessatz">Tagessatz in EUR</label>
+        <input
+          class="form__input"
+          type="number"
+          id="settingsTagessatz"
+          name="settingsTagessatz"
+          min="1"
+          max="10000"
+          step="1"
+          inputmode="numeric"
+        />
+        <p class="form__hint">Standardwert: 1.200 €. Maximum: 10.000 €.</p>
+        <p class="form__error" data-error-for="settingsTagessatz" role="alert"></p>
+      </div>
+      <div class="modal-card__actions">
+        <button type="button" class="btn btn--ghost" data-action="reset-settings">
+          Auf Standard zurücksetzen
+        </button>
+        <div class="modal-card__actions-spacer" aria-hidden="true"></div>
+        <button type="button" class="btn btn--secondary" data-action="close-settings">
+          Abbrechen
+        </button>
+        <button type="button" class="btn btn--primary" data-action="save-settings">
+          Speichern
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- App-Einstiegspunkt (ES-Module). wizard.js bindet die übrigen Module ein. -->
   <script type="module" src="./js/wizard.js"></script>
