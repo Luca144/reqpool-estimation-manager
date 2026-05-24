@@ -14,6 +14,14 @@ nicht aufgeführt.
 
 ### Added
 
+- **Erweiterte Sensitivity-Slider** — unter den drei Top-Slidern in Step 3
+  gibt es jetzt einen aufklappbaren Bereich „Weitere Parameter anpassen",
+  der die übrigen fünf Parameter als zusätzliche Slider anbietet. Damit
+  lassen sich alle acht Systemparameter live justieren, ohne den
+  Hauptbereich zu überladen. Browser-native `<details>`/`<summary>` ohne
+  eigenes JS-Toggle. Reset-Button räumt auch die zusätzlichen Slider mit
+  auf. Neue Helper-Funktion `getAllDriversSorted(params)` in
+  `js/sensitivity.js`.
 - **Konfigurierbarer Tagessatz** — Zahnrad-Icon oben rechts im Header
   öffnet ein Settings-Modal, in dem der User den Tagessatz (Default
   1.200 €, max 10.000 €) für die EUR-Umrechnung überschreiben kann.

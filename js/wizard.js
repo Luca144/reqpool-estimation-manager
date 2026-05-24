@@ -29,6 +29,7 @@ import { animateCounter, cancelCounterAnimation, formatPT, formatEUR } from './u
 import { renderPhasesChart, updatePhasesChart, destroyPhasesChart } from './charts.js';
 import {
   getTopCostDrivers,
+  getAllDriversSorted,
   renderSensitivitySliders,
   resetSensitivitySliders,
 } from './sensitivity.js';
@@ -573,11 +574,18 @@ function renderSensitivity(params) {
   state.sensitivityOverrides = {};
   state.sensitivityTopDrivers = getTopCostDrivers(params, 3);
 
+  // Additional Drivers = alle 8 (sortiert nach Beitrag) MINUS die Top-3.
+  // Wird in einem aufklappbaren <details>-Block unter den Top-Slidern gerendert.
+  const allSorted = getAllDriversSorted(params);
+  const topKeys = new Set(state.sensitivityTopDrivers.map(d => d.key));
+  const additionalDrivers = allSorted.filter(d => !topKeys.has(d.key));
+
   renderSensitivitySliders(
     container,
     state.sensitivityOriginalParams,
     state.sensitivityTopDrivers,
     applyOverrides,
+    { additionalDrivers },
   );
 }
 
@@ -817,11 +825,10 @@ function clearStep3Display() {
 
 function handleResetSensitivity() {
   const container = document.querySelector('[data-sensitivity-sliders]');
-  if (!container || !state.sensitivityTopDrivers) return;
+  if (!container || !state.sensitivityOriginalParams) return;
   resetSensitivitySliders(
     container,
     state.sensitivityOriginalParams,
-    state.sensitivityTopDrivers,
     applyOverrides,
   );
 }

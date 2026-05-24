@@ -3,6 +3,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   getTopCostDrivers,
+  getAllDriversSorted,
   renderSensitivitySliders,
   resetSensitivitySliders,
   computeSliderRange,
@@ -95,6 +96,69 @@ describe('getTopCostDrivers', () => {
     const uc = top3.find(d => d.key === 'useCases');
     expect(uc.contribution).toBeCloseTo(25, 5);
     expect(uc.currentValue).toBe(10);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getAllDriversSorted (A3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('getAllDriversSorted', () => {
+  const mittelParams = {
+    pages: 15, useCases: 10, businessObjects: 12, interfaces: 4,
+    batches: 2, languages: 2, roles: 5, users: 150,
+    projectType: 'Greenfield',
+  };
+
+  it('liefert genau 8 Einträge — alle Parameter inkl. users', () => {
+    const all = getAllDriversSorted(mittelParams);
+    expect(all).toHaveLength(8);
+  });
+
+  it('enthält alle 8 erwarteten Keys', () => {
+    const all = getAllDriversSorted(mittelParams);
+    const keys = all.map(d => d.key).sort();
+    expect(keys).toEqual([
+      'batches', 'businessObjects', 'interfaces', 'languages',
+      'pages', 'roles', 'useCases', 'users',
+    ]);
+  });
+
+  it('users IMMER inkludiert (auch wenn nicht der dominanteste Driver)', () => {
+    // Bei Mittel-Demo ist users (18.975) NICHT der dominante Driver
+    // (useCases mit 25 ist größer), trotzdem soll users in der Liste sein.
+    const all = getAllDriversSorted(mittelParams);
+    expect(all.map(d => d.key)).toContain('users');
+  });
+
+  it('ist absteigend nach contribution sortiert', () => {
+    const all = getAllDriversSorted(mittelParams);
+    for (let i = 1; i < all.length; i++) {
+      expect(all[i - 1].contribution).toBeGreaterThanOrEqual(all[i].contribution);
+    }
+  });
+
+  it('Mittel-Demo: erster Eintrag ist useCases (25 PT)', () => {
+    const all = getAllDriversSorted(mittelParams);
+    expect(all[0].key).toBe('useCases');
+    expect(all[0].contribution).toBeCloseTo(25, 5);
+  });
+
+  it('Mittel-Demo: users ist auf Platz 2 (18.975 PT, vor businessObjects=14.4)', () => {
+    const all = getAllDriversSorted(mittelParams);
+    expect(all[1].key).toBe('users');
+    expect(all[1].contribution).toBeCloseTo(18.975, 3);
+  });
+
+  it('all-zero Parameter: 8 Einträge mit contribution=0', () => {
+    const params = {
+      pages: 0, useCases: 0, businessObjects: 0, interfaces: 0,
+      batches: 0, languages: 0, roles: 0, users: 0,
+      projectType: 'Greenfield',
+    };
+    const all = getAllDriversSorted(params);
+    expect(all).toHaveLength(8);
+    expect(all.every(d => d.contribution === 0)).toBe(true);
   });
 });
 
@@ -261,6 +325,86 @@ describe('renderSensitivitySliders', () => {
     const input = container.querySelector('.sensitivity-slider[data-key="useCases"] input');
     expect(input.getAttribute('aria-label')).toBe('Use Cases');
   });
+
+  // ── A3: Erweiterte Sensitivity (additionalDrivers in <details>) ──────────
+  it('ohne additionalDrivers wird KEIN <details>-Element gerendert', () => {
+    const container = makeContainer();
+    renderSensitivitySliders(container, {}, sampleDrivers, vi.fn());
+    expect(container.querySelector('details')).toBeNull();
+  });
+
+  it('mit additionalDrivers wird ein <details>-Element mit Summary gerendert', () => {
+    const container = makeContainer();
+    const additionalDrivers = [
+      { key: 'roles',    currentValue: 5, contribution: 9 },
+      { key: 'batches',  currentValue: 2, contribution: 3 },
+    ];
+    renderSensitivitySliders(container, {}, sampleDrivers, vi.fn(), { additionalDrivers });
+
+    const details = container.querySelector('details.sensitivity-additional');
+    expect(details).not.toBeNull();
+    const summary = details.querySelector('summary');
+    expect(summary).not.toBeNull();
+    expect(summary.textContent).toContain('Weitere Parameter anpassen');
+  });
+
+  it('mit additionalDrivers werden insgesamt alle Slider gerendert (Top + Additional)', () => {
+    const container = makeContainer();
+    const additionalDrivers = [
+      { key: 'roles',     currentValue: 5, contribution: 9 },
+      { key: 'batches',   currentValue: 2, contribution: 3 },
+      { key: 'languages', currentValue: 2, contribution: 0.5 },
+      { key: 'users',     currentValue: 150, contribution: 18.975 },
+      { key: 'pages',     currentValue: 15, contribution: 12 },
+    ];
+    renderSensitivitySliders(container, {}, sampleDrivers, vi.fn(), { additionalDrivers });
+
+    const allSliders = container.querySelectorAll('.sensitivity-slider');
+    expect(allSliders).toHaveLength(3 + 5);
+  });
+
+  it('<details> ist initial geschlossen (Default-Browser-Verhalten)', () => {
+    const container = makeContainer();
+    const additionalDrivers = [{ key: 'roles', currentValue: 5, contribution: 9 }];
+    renderSensitivitySliders(container, {}, sampleDrivers, vi.fn(), { additionalDrivers });
+    const details = container.querySelector('details');
+    expect(details.open).toBe(false);
+  });
+
+  it('Slider im <details>-Bucket lösen onChange aus (gemeinsamer Listener)', () => {
+    const container = makeContainer();
+    const onChange = vi.fn();
+    const additionalDrivers = [
+      { key: 'roles', currentValue: 5, contribution: 9 },
+    ];
+    renderSensitivitySliders(container, {}, sampleDrivers, onChange, { additionalDrivers });
+
+    const rolesInput = container.querySelector('.sensitivity-slider[data-key="roles"] input');
+    rolesInput.value = '8';
+    rolesInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(onChange).toHaveBeenCalledWith({ roles: 8 });
+  });
+
+  it('Modifikationen an Top- und Additional-Slidern kombinieren sich im selben overrides-Objekt', () => {
+    const container = makeContainer();
+    const onChange = vi.fn();
+    const additionalDrivers = [
+      { key: 'roles', currentValue: 5, contribution: 9 },
+    ];
+    renderSensitivitySliders(container, {}, sampleDrivers, onChange, { additionalDrivers });
+
+    const ucInput = container.querySelector('.sensitivity-slider[data-key="useCases"] input');
+    const rolesInput = container.querySelector('.sensitivity-slider[data-key="roles"] input');
+
+    ucInput.value = '15';
+    ucInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    rolesInput.value = '8';
+    rolesInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(onChange).toHaveBeenLastCalledWith({ useCases: 15, roles: 8 });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -278,6 +422,10 @@ describe('resetSensitivitySliders', () => {
     { key: 'interfaces',      currentValue: 4,  contribution: 12 },
   ];
 
+  // originalParams enthält die Step-2-Werte, aus denen Reset die Originalwerte
+  // pro Slider-Key ableitet (signature ohne drivers-Array seit A3).
+  const originalParams = { useCases: 10, businessObjects: 12, interfaces: 4 };
+
   it('setzt alle Slider-Werte auf currentValue zurück', () => {
     const container = makeContainer();
     const onChange = vi.fn();
@@ -289,7 +437,7 @@ describe('resetSensitivitySliders', () => {
     inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
 
     // Dann reset
-    resetSensitivitySliders(container, {}, drivers, onChange);
+    resetSensitivitySliders(container, originalParams, onChange);
 
     expect(inputs[0].value).toBe('10');
     expect(inputs[1].value).toBe('12');
@@ -305,7 +453,7 @@ describe('resetSensitivitySliders', () => {
     inputs[0].value = '20';
     inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
 
-    resetSensitivitySliders(container, {}, drivers, onChange);
+    resetSensitivitySliders(container, originalParams, onChange);
 
     const valueEls = container.querySelectorAll('.sensitivity-slider__value');
     for (const v of valueEls) {
@@ -319,7 +467,7 @@ describe('resetSensitivitySliders', () => {
     renderSensitivitySliders(container, {}, drivers, onChange);
 
     onChange.mockClear();
-    resetSensitivitySliders(container, {}, drivers, onChange);
+    resetSensitivitySliders(container, originalParams, onChange);
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith({});
@@ -334,11 +482,39 @@ describe('resetSensitivitySliders', () => {
     inputs[0].value = '20';
     inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
 
-    resetSensitivitySliders(container, {}, drivers, onChange);
+    resetSensitivitySliders(container, originalParams, onChange);
 
     const valueEls = container.querySelectorAll('.sensitivity-slider__value');
     expect(valueEls[0].textContent).toBe('10');
     expect(valueEls[1].textContent).toBe('12');
     expect(valueEls[2].textContent).toBe('4');
+  });
+
+  // ── A3: Reset wirkt auch auf Slider im <details>-Bucket ─────────────────
+  it('Reset setzt auch die Slider im aufgeklappten <details>-Bucket zurück', () => {
+    const container = makeContainer();
+    const onChange = vi.fn();
+    const additionalDrivers = [
+      { key: 'roles',   currentValue: 5, contribution: 9 },
+      { key: 'batches', currentValue: 2, contribution: 3 },
+    ];
+    const fullParams = { ...originalParams, roles: 5, batches: 2 };
+
+    renderSensitivitySliders(container, {}, drivers, onChange, { additionalDrivers });
+
+    // Top-Slider UND Additional-Slider verschieben.
+    const ucInput = container.querySelector('.sensitivity-slider[data-key="useCases"] input');
+    const rolesInput = container.querySelector('.sensitivity-slider[data-key="roles"] input');
+    ucInput.value = '15';
+    ucInput.dispatchEvent(new Event('input', { bubbles: true }));
+    rolesInput.value = '9';
+    rolesInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    onChange.mockClear();
+    resetSensitivitySliders(container, fullParams, onChange);
+
+    expect(ucInput.value).toBe('10');
+    expect(rolesInput.value).toBe('5');
+    expect(onChange).toHaveBeenCalledWith({});
   });
 });

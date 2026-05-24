@@ -546,6 +546,51 @@ body {
   color: var(--color-text-muted);
 }
 
+/* Aufklappbarer Block für die übrigen 5 Parameter (A3 — Erweiterte Sensitivity).
+   Browser-native <details>/<summary>, kein eigenes JS-Toggle. */
+.sensitivity-additional {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.sensitivity-additional__summary {
+  font-size: var(--font-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  list-style: none; /* Default-Marker ausblenden, eigenen Indikator nutzen */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+.sensitivity-additional__summary::-webkit-details-marker {
+  display: none; /* WebKit-Marker ausblenden */
+}
+.sensitivity-additional__summary::before {
+  content: '▸';
+  display: inline-block;
+  transition: transform var(--transition-fast);
+  font-size: var(--font-xs);
+}
+.sensitivity-additional[open] > .sensitivity-additional__summary::before {
+  transform: rotate(90deg);
+}
+.sensitivity-additional__summary:hover {
+  color: var(--color-primary-hover);
+}
+.sensitivity-additional__summary:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
 /* Range-Slider ─ Custom-Styling für WebKit & Firefox.
    CI verbietet Farbverläufe — daher solider Track, kein Filled-Portion-
    Gradient. Die Filled-Portion wird in Schritt 12 ggf. via separates
