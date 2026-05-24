@@ -462,27 +462,27 @@ body {
 /* Status-Varianten — Royal-Blue dient als "Hinweis"-Farbe statt Knall-Gelb,
    weil die CI kein Gelb hat. Drei klar unterscheidbare Zustände bleiben
    trotzdem erhalten (Indikator-Punkt + Border-Color + Hintergrund). */
-.feasibility-card[data-feasibility-status='green'] {
+.feasibility-card[data-status='green'] {
   border-left-color: var(--color-success);
   background-color: var(--color-green-10);
 }
-.feasibility-card[data-feasibility-status='green'] .feasibility-card__indicator {
+.feasibility-card[data-status='green'] .feasibility-card__indicator {
   background-color: var(--color-success);
 }
 
-.feasibility-card[data-feasibility-status='yellow'] {
+.feasibility-card[data-status='yellow'] {
   border-left-color: var(--color-primary);
   background-color: var(--color-royal-blue-05);
 }
-.feasibility-card[data-feasibility-status='yellow'] .feasibility-card__indicator {
+.feasibility-card[data-status='yellow'] .feasibility-card__indicator {
   background-color: var(--color-primary);
 }
 
-.feasibility-card[data-feasibility-status='red'] {
+.feasibility-card[data-status='red'] {
   border-left-color: var(--color-danger);
   background-color: var(--color-danger-bg);
 }
-.feasibility-card[data-feasibility-status='red'] .feasibility-card__indicator {
+.feasibility-card[data-status='red'] .feasibility-card__indicator {
   background-color: var(--color-danger);
 }
 

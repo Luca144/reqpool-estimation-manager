@@ -492,8 +492,6 @@ function renderFeasibility() {
 
 function handleConsultantSliderInput(event) {
   const v = Number(event.target.value);
-  // eslint-disable-next-line no-console
-  console.log('[feasibility] consultant slider input:', event.target.value, '→ parsed:', v);
   if (!Number.isFinite(v) || v < 1) return;
   state.consultantCount = v;
   const valueEl = document.querySelector('[data-consultant-value]');
@@ -538,17 +536,11 @@ function updateFeasibilityCard() {
     return;
   }
 
-  // eslint-disable-next-line no-console
-  console.log('[feasibility] update card:', {
-    likelyPT,
-    plannedMonths,
-    consultantCount: state.consultantCount,
-    status: result.status,
-    realisticMin: result.realisticMonthsMin,
-    realisticMax: result.realisticMonthsMax,
-  });
-
-  card.dataset.feasibilityStatus = result.status;
+  // `data-status` (nicht `data-feasibility-status`) auf der Karte, damit kein
+  // Selektor-Konflikt mit dem innen liegenden `[data-feasibility-status]`-Slot
+  // entsteht — sonst würde querySelector die Karte statt das Status-Label
+  // treffen und die Card-Children beim textContent-Set zerstören.
+  card.dataset.status = result.status;
   statusEl.textContent = FEASIBILITY_STATUS_LABELS[result.status];
 
   const min = ptFormat(result.realisticMonthsMin);
@@ -700,7 +692,7 @@ function clearStep3Display() {
   const consultantValue = document.querySelector('[data-consultant-value]');
   if (consultantValue) consultantValue.textContent = String(DEFAULT_CONSULTANT_COUNT);
   const feasibilityCard = document.querySelector('[data-feasibility-card]');
-  if (feasibilityCard) delete feasibilityCard.dataset.feasibilityStatus;
+  if (feasibilityCard) delete feasibilityCard.dataset.status;
 }
 
 function handleResetSensitivity() {
