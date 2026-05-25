@@ -41,6 +41,7 @@ import {
   applyScopeAdjustmentToEstimation,
 } from './scope.js';
 import { SCOPE_ITEMS, SCOPE_CATEGORY_LABELS } from './config.js';
+import { computeTimeline } from './timeline.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -476,6 +477,7 @@ function calculateAndRenderResult() {
   renderAssumptions(params);
   renderRisks(params);
   renderChart(renderedEstimation);
+  renderTimeline(renderedEstimation);
   renderSensitivity(params);
   renderFeasibility();
   renderScope();
@@ -543,7 +545,14 @@ function handleConsultantSliderInput(event) {
   state.consultantCount = v;
   const valueEl = document.querySelector('[data-consultant-value]');
   if (valueEl) valueEl.textContent = String(v);
-  updateFeasibilityCard();
+
+  // Berater-Anzahl beeinflusst Machbarkeits-Karte UND Timeline (durationDays
+  // pro Phase = ceil(pt / consultantCount)). applyOverrides re-rendert beide.
+  if (state.sensitivityOriginalParams) {
+    applyOverrides(state.sensitivityOverrides);
+  } else {
+    updateFeasibilityCard();
+  }
 }
 
 /**
@@ -710,6 +719,9 @@ function applyOverrides(overrides) {
 
   // Feasibility-Karte ist live mit Sensitivity- UND Scope-Overrides verbunden.
   updateFeasibilityCard();
+
+  // Timeline aktualisieren mit den neuen (adjusted) Phasen.
+  renderTimeline(estimation);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -944,6 +956,119 @@ function clearStep3Display() {
   const scopeCountOut = document.querySelector('[data-scope-count-out]');
   if (scopeCountIn) scopeCountIn.textContent = '0';
   if (scopeCountOut) scopeCountOut.textContent = '0';
+
+  // Timeline-Rows leeren und Meta zurücksetzen.
+  const timelineRows = document.querySelector('[data-timeline-rows]');
+  if (timelineRows) timelineRows.innerHTML = '';
+  const timelineMeta = document.querySelector('[data-timeline-meta]');
+  if (timelineMeta) timelineMeta.textContent = '—';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Indikative Timeline (Sprint-2-C1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** dd.MM.yyyy-Formatter für Timeline-Datums. */
+const timelineDateFormatter = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+/** dd.MM. (kurz, ohne Jahr) für Range-Anzeigen pro Phase. */
+const timelineDateShort = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  timeZone: 'UTC',
+});
+
+/**
+ * Liefert das Start-Datum für die Timeline-Berechnung. Wenn der User in Step 1
+ * ein gültiges Datum gesetzt hat, dieses; sonst heute (ISO).
+ */
+function getTimelineStartDate() {
+  const raw = state.step1Values.plannedStart;
+  if (typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return raw;
+  }
+  const today = new Date();
+  return today.toISOString().slice(0, 10);
+}
+
+function renderTimeline(estimation) {
+  const container = document.querySelector('[data-timeline]');
+  if (!container) return;
+
+  let rows;
+  try {
+    rows = computeTimeline(
+      estimation.phases,
+      getTimelineStartDate(),
+      state.consultantCount,
+    );
+  } catch (err) {
+    console.error('Timeline-Berechnung fehlgeschlagen:', err);
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+
+  const totalWorkdays = rows.reduce((s, r) => s + r.durationDays, 0);
+  const metaEl = container.querySelector('[data-timeline-meta]');
+  if (metaEl) {
+    if (rows.length === 0) {
+      metaEl.textContent = '—';
+    } else {
+      const startStr = timelineDateFormatter.format(rows[0].startDate);
+      const endStr = timelineDateFormatter.format(rows[rows.length - 1].endDate);
+      const monthsApprox = (totalWorkdays / 20).toFixed(1).replace('.', ',');
+      metaEl.textContent = `${startStr} – ${endStr} · ${totalWorkdays} Werktage (ca. ${monthsApprox} Monate)`;
+    }
+  }
+
+  const rowsContainer = container.querySelector('[data-timeline-rows]');
+  if (!rowsContainer) return;
+  rowsContainer.innerHTML = '';
+
+  let cumulativeDays = 0;
+  for (const row of rows) {
+    const widthPct = totalWorkdays > 0
+      ? (row.durationDays / totalWorkdays) * 100
+      : 0;
+    const leftPct = totalWorkdays > 0
+      ? (cumulativeDays / totalWorkdays) * 100
+      : 0;
+
+    const li = document.createElement('li');
+    li.className = 'timeline-row';
+
+    const label = document.createElement('span');
+    label.className = 'timeline-row__label';
+    label.textContent = row.phaseName;
+    label.title = row.phaseName;
+
+    const track = document.createElement('div');
+    track.className = 'timeline-row__bar-track';
+    const bar = document.createElement('div');
+    bar.className = 'timeline-row__bar';
+    bar.style.left = `${leftPct}%`;
+    bar.style.width = `${widthPct}%`;
+    bar.setAttribute('aria-label', `${row.phaseName}, ${row.durationDays} Werktage`);
+    track.appendChild(bar);
+
+    const dates = document.createElement('span');
+    dates.className = 'timeline-row__dates';
+    const startShort = timelineDateShort.format(row.startDate);
+    const endShort = timelineDateShort.format(row.endDate);
+    dates.textContent = `${startShort} – ${endShort} (${row.durationDays} d)`;
+
+    li.appendChild(label);
+    li.appendChild(track);
+    li.appendChild(dates);
+    rowsContainer.appendChild(li);
+
+    cumulativeDays += row.durationDays;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

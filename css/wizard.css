@@ -375,6 +375,103 @@ body {
   max-height: 320px;
 }
 
+/* ── Indikative Timeline (Sprint-2-C1) ───────────────────────────────── */
+
+.result__timeline {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.result__timeline-intro {
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.result__timeline-meta {
+  font-size: var(--font-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: var(--space-2);
+}
+
+.result__timeline-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.timeline-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 160px;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-sm);
+}
+
+.timeline-row__label {
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  /* Verhindert Overflow bei langen Phasennamen */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-row__bar-track {
+  position: relative;
+  height: 18px;
+  background-color: var(--color-bg-muted);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.timeline-row__bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  transition: left var(--transition-base), width var(--transition-base);
+  min-width: 2px;
+}
+
+/* Alternierender Bar-Akzent (Royal Blue + Green wechselnd) — gibt der
+   Timeline-Visualisierung mehr Tiefe, ohne Gradient zu verwenden. */
+.timeline-row:nth-child(odd) .timeline-row__bar {
+  background-color: var(--color-primary);
+}
+.timeline-row:nth-child(even) .timeline-row__bar {
+  background-color: var(--color-success);
+}
+
+.timeline-row__dates {
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Responsive: bei <760px stacken Label/Bar/Dates vertikal */
+@media (max-width: 760px) {
+  .timeline-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+  .timeline-row__dates {
+    text-align: left;
+  }
+}
+
 /* ── Sensitivity-Analyse ────────────────────────────────────────────────── */
 .result__sensitivity {
   background-color: var(--color-white);

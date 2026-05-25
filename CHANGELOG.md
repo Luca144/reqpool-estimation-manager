@@ -14,6 +14,16 @@ nicht aufgeführt.
 
 ### Added
 
+- **Indikative Timeline in Step 3** — neue Section unter dem Donut zeigt
+  die Phasen seriell auf einer Werktag-Achse: pro Phase eine Zeile mit
+  Phasenname, horizontalem Balken (alternierend Royal-Blue/Green) und
+  Datum-Range. Berechnung über `computeTimeline(phases, startDate,
+  consultantCount)` in `js/timeline.js`: `durationDays = ceil(pt /
+  consultantCount)`, mindestens 1 Werktag pro Phase, Wochenenden werden
+  übersprungen (Feiertage absichtlich nicht — vereinfacht). Reagiert
+  live auf Berater-Slider, Sensitivity-Slider und Scope-Toggle. Wenn in
+  Step 1 ein „Geplanter Start" gesetzt ist, wird dieser als Startdatum
+  verwendet; sonst „heute".
 - **Scope-Konfigurator in Step 3** — die bisher statische „Enthalten / Nicht
   enthalten"-Box wurde durch einen interaktiven Konfigurator ersetzt. 18
   kuratierte Leistungs-Items in fünf Kategorien (Erhebung, Spezifikation,
