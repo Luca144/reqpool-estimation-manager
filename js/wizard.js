@@ -451,6 +451,83 @@ const updateLivePreviewDebounced = debounce(updateLivePreview, LIVE_PREVIEW_DEBO
 // Step-3-Rendering (Vollständige Schätzung)
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// G1 + G2: Polish-Animationen (Hero-Reveal + Live-Pulse)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Stagger-Sequenz der Step-3-Sub-Sektionen mit Delay in ms.
+ * Reihenfolge folgt dem visuellen Aufbau, Delays orientieren sich am Briefing
+ * (Cost-Range 200ms nach Counter, Donut 400ms, Annahmen 600ms, …).
+ */
+const HERO_REVEAL_SEQUENCE = Object.freeze([
+  { selector: '.result__summary',     delay: 0 },
+  { selector: '.result__feasibility', delay: 200 },
+  { selector: '.result__chart',       delay: 350 },
+  { selector: '.result__timeline',    delay: 450 },
+  { selector: '.result__sensitivity', delay: 550 },
+  { selector: '.result__assumptions', delay: 650 },
+  { selector: '.result__risks',       delay: 750 },
+  { selector: '.result__scope',       delay: 850 },
+]);
+
+/** Tracking laufender Reveal-Timer, damit wir bei "Neue Schätzung" canceln können. */
+const heroRevealTimers = [];
+
+/**
+ * Startet die Hero-Reveal-Sequenz: jede Step-3-Sektion bekommt zunächst
+ * `.reveal-pending` und nach ihrem Delay `.reveal-active`. CSS animiert dann
+ * opacity + translateY. Respektiert prefers-reduced-motion (CSS-Media-Query).
+ */
+function runHeroReveal() {
+  // Etwaige in-flight Timer abbrechen.
+  while (heroRevealTimers.length > 0) {
+    clearTimeout(heroRevealTimers.pop());
+  }
+
+  // Initial alle Sektionen auf "pending" setzen.
+  for (const { selector } of HERO_REVEAL_SEQUENCE) {
+    const el = document.querySelector(selector);
+    if (!el) continue;
+    el.classList.remove('reveal-active');
+    el.classList.add('reveal-pending');
+  }
+
+  // Erzwinge einen Reflow, damit die "pending"-Styles wirklich angewandt
+  // werden, bevor wir nacheinander "active" setzen — sonst springt die
+  // Animation visuell durch.
+  void document.body.offsetWidth;
+
+  for (const { selector, delay } of HERO_REVEAL_SEQUENCE) {
+    const el = document.querySelector(selector);
+    if (!el) continue;
+    const timerId = setTimeout(() => {
+      el.classList.remove('reveal-pending');
+      el.classList.add('reveal-active');
+    }, delay);
+    heroRevealTimers.push(timerId);
+  }
+}
+
+/**
+ * Setzt eine CSS-Klasse kurzzeitig zur Trigger einer Pulse-Animation.
+ * Verwendet einen Reflow zum Animations-Restart bei schnellem Drag.
+ */
+function pulseElement(el, className, durationMs) {
+  if (!el) return;
+  el.classList.remove(className);
+  void el.offsetWidth;
+  el.classList.add(className);
+  setTimeout(() => el.classList.remove(className), durationMs);
+}
+
+/** Sichtbare Highlight-Pulses auf Counter, Cost-Range, Chart. */
+function pulseLiveUpdate() {
+  pulseElement(document.querySelector('[data-counter]'), 'result__pt-counter--pulse', 420);
+  pulseElement(document.querySelector('.result__cost-range'), 'result__cost-range--pulse', 260);
+  pulseElement(document.querySelector('.result__chart'), 'result__chart--pulse', 320);
+}
+
 function calculateAndRenderResult() {
   const params = buildEstimationParams();
 
@@ -485,6 +562,10 @@ function calculateAndRenderResult() {
   renderSensitivity(params);
   renderFeasibility();
   renderScope();
+
+  // G1 — Hero-Reveal-Stagger nach dem ersten Render. Per RAF, damit das DOM
+  // garantiert gepainted ist, bevor wir die "pending"-Klassen setzen.
+  requestAnimationFrame(runHeroReveal);
 }
 
 /**
@@ -726,6 +807,10 @@ function applyOverrides(overrides) {
 
   // Timeline aktualisieren mit den neuen (adjusted) Phasen.
   renderTimeline(estimation);
+
+  // G2 — Live-Highlight-Pulses auf Counter, Cost-Range, Chart, damit der
+  // User visuell sieht, dass sein Slider/Toggle gewirkt hat.
+  pulseLiveUpdate();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

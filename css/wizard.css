@@ -214,6 +214,63 @@ body {
   }
 }
 
+/* ── G1: Hero-Reveal-Stagger (Sprint-2-G1) ─────────────────────────────
+   Beim Step-3-Eintritt erscheinen die Sub-Sektionen nacheinander mit
+   leichtem opacity/translateY-Fade. JS toggelt die Klassen mit Delays
+   (siehe runHeroReveal in wizard.js). */
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--transition-slow), transform var(--transition-slow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-pending,
+  .reveal-active {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── G2: Live-Highlight-Pulse bei Slider-/Toggle-Updates ──────────────── */
+.result__pt-counter--pulse {
+  animation: counterPulse 400ms ease-out;
+}
+@keyframes counterPulse {
+  0%   { box-shadow: 0 0 0 0 var(--color-royal-blue-25); }
+  60%  { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.result__cost-range--pulse {
+  animation: costRangePulse 240ms ease-out;
+}
+@keyframes costRangePulse {
+  0%   { opacity: 0.65; transform: scale(0.985); }
+  100% { opacity: 1;    transform: scale(1); }
+}
+
+.result__chart--pulse {
+  animation: chartPulse 300ms ease-out;
+}
+@keyframes chartPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.015); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result__pt-counter--pulse,
+  .result__cost-range--pulse,
+  .result__chart--pulse {
+    animation: none !important;
+  }
+}
+
 /* ───────────────────────────────────────────────────────────────────────── */
 /*  Sticky Footer                                                            */
 /* ───────────────────────────────────────────────────────────────────────── */

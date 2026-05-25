@@ -14,6 +14,14 @@ nicht aufgeführt.
 
 ### Added
 
+- **Polish: Hero-Reveal und Live-Pulse in Step 3** — beim Eintritt zu Step
+  3 erscheinen Counter, Kosten-Range, Donut, Timeline, Sensitivity,
+  Annahmen, Risiken und Scope nicht mehr schlagartig, sondern gestaffelt
+  mit feinem Fade-in (opacity + leichtes translateY) im 100–200 ms-Raster.
+  Bei Slider- oder Scope-Änderungen pulsen PT-Counter (Royal-Blue-Glow),
+  Kosten-Range (Opacity-Bounce) und Donut (subtile Skalierung) kurz auf,
+  damit das visuelle Feedback nicht untergeht. Alle Effekte respektieren
+  `prefers-reduced-motion`.
 - **Beratungs-Termin-Modal nach PDF-Export** — Lead-Funnel-Mock: nach
   erfolgreichem PDF-Download öffnet sich automatisch ein Modal, in dem
   der User einen Beratungstermin in einem 5-Werktag-Raster (15-Min-Slots,
