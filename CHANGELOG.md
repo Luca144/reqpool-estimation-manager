@@ -14,6 +14,18 @@ nicht aufgeführt.
 
 ### Added
 
+- **Beratungs-Termin-Modal nach PDF-Export** — Lead-Funnel-Mock: nach
+  erfolgreichem PDF-Download öffnet sich automatisch ein Modal, in dem
+  der User einen Beratungstermin in einem 5-Werktag-Raster (15-Min-Slots,
+  9:00–12:00 und 13:30–17:00) auswählen und ein Kontaktformular (Name,
+  E-Mail, Firma) absenden kann. Belegt-Pattern deterministisch via
+  `generateCalendarSlots` in `js/calendar-mock.js` und `BUSY_PATTERN`
+  in `config.js` (Mi-Vormittag relativ frei, Fr-Nachmittag stark
+  belegt, Mittagspause immer belegt, …). Empfohlener Slot wird mit
+  subtilem Royal-Blue-Pulse hervorgehoben (deaktiviert bei
+  `prefers-reduced-motion`). Submit triggert ein Confirmation-Modal mit
+  expliziter Konzept-Vorschlag-Hinweis (in der Live-Variante würde
+  Cal.com o.Ä. eingebunden).
 - **Indikative Timeline in Step 3** — neue Section unter dem Donut zeigt
   die Phasen seriell auf einer Werktag-Achse: pro Phase eine Zeile mit
   Phasenname, horizontalem Balken (alternierend Royal-Blue/Green) und

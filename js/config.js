@@ -420,6 +420,47 @@ export const SCOPE_ITEMS = Object.freeze([
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
+// KALENDER — Belegt-Pattern für den Lead-Funnel-Mock (Sprint-2-D1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Deterministisches Belegt-Pattern für den fingierten Beratungs-Kalender.
+ *
+ * Die Pattern-Werte (Vormittags/Nachmittags-Belegt-Wahrscheinlichkeit pro
+ * Wochentag) wirken sich über einen deterministischen Hash auf die Slot-IDs
+ * aus — gleicher Slot ergibt immer denselben Status, also keine Random-
+ * Inkonsistenz zwischen Reloads.
+ *
+ * Wochentag-Konvention (analog `Date.getDay()`): 0 = Sonntag, 1 = Montag, …
+ *
+ * Hinweise:
+ *   - Mittagspause (12:00–13:30) ist IMMER belegt — Berater essen Mittag.
+ *   - Mo-Vormittag stark, Fr-Nachmittag stark → Standard-Berater-Realität.
+ *   - Mi-Vormittag liegt typischerweise frei (Sprint-Plannings andernorts).
+ */
+export const BUSY_PATTERN = Object.freeze({
+  /** Geschäftszeiten als Dezimal-Stunden. */
+  workdayHours: Object.freeze({
+    morningStart: 9,
+    morningEnd: 12,
+    afternoonStart: 13.5, // = 13:30
+    afternoonEnd: 17,
+  }),
+  /** Slot-Länge in Minuten. */
+  slotDurationMinutes: 15,
+  /** Belegt-Wahrscheinlichkeit je Wochentag und Tagesabschnitt. */
+  busyChances: Object.freeze({
+    1: Object.freeze({ morning: 0.7, afternoon: 0.4 }), // Montag stark vormittags
+    2: Object.freeze({ morning: 0.6, afternoon: 0.4 }), // Dienstag Standard
+    3: Object.freeze({ morning: 0.2, afternoon: 0.4 }), // Mittwoch eher frei
+    4: Object.freeze({ morning: 0.6, afternoon: 0.4 }), // Donnerstag Standard
+    5: Object.freeze({ morning: 0.6, afternoon: 0.8 }), // Freitag stark nachmittags
+  }),
+  /** Empfohlener Slot muss mindestens X Stunden in der Zukunft liegen. */
+  recommendedSlotMinHoursAhead: 4,
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MACHBARKEIT — Werktage pro Monat, Toleranzband für Plan-vs-Realismus
 // ─────────────────────────────────────────────────────────────────────────────
 

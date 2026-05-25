@@ -423,6 +423,109 @@
     </div>
   </div>
 
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <!-- Beratungs-Termin-Modal (Sprint-2-D1 Lead-Funnel)                       -->
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <div class="modal-overlay" data-modal="termin" role="presentation" hidden>
+    <div class="modal-card modal-card--wide" role="dialog" aria-labelledby="termin-title" aria-modal="true">
+      <button
+        type="button"
+        class="modal-card__close"
+        data-action="close-termin"
+        aria-label="Termin-Auswahl schließen"
+      >×</button>
+      <h2 id="termin-title" class="modal-card__title">Beratung zu Ihrer Schätzung</h2>
+      <p class="modal-card__intro">
+        Wählen Sie einen Termin für ein unverbindliches Gespräch mit einem
+        ReqPOOL-Berater. Empfohlene Slots sind hervorgehoben.
+      </p>
+
+      <div class="termin-calendar" data-termin-calendar role="grid" aria-label="Verfügbare Beratungstermine"></div>
+
+      <form class="termin-form" data-termin-form novalidate>
+        <div class="form__field">
+          <label class="form__label" for="terminName">Name</label>
+          <input
+            class="form__input"
+            type="text"
+            id="terminName"
+            name="terminName"
+            maxlength="200"
+            required
+            aria-required="true"
+            autocomplete="name"
+          />
+          <p class="form__error" data-error-for="terminName" role="alert"></p>
+        </div>
+        <div class="form__field">
+          <label class="form__label" for="terminEmail">E-Mail</label>
+          <input
+            class="form__input"
+            type="email"
+            id="terminEmail"
+            name="terminEmail"
+            maxlength="200"
+            required
+            aria-required="true"
+            autocomplete="email"
+          />
+          <p class="form__error" data-error-for="terminEmail" role="alert"></p>
+        </div>
+        <div class="form__field">
+          <label class="form__label" for="terminFirma">Firma</label>
+          <input
+            class="form__input"
+            type="text"
+            id="terminFirma"
+            name="terminFirma"
+            maxlength="200"
+            required
+            aria-required="true"
+            autocomplete="organization"
+          />
+          <p class="form__error" data-error-for="terminFirma" role="alert"></p>
+        </div>
+
+        <p class="termin-selected" data-termin-selected>
+          Bitte wählen Sie oben einen freien Termin aus.
+        </p>
+
+        <div class="modal-card__actions">
+          <div class="modal-card__actions-spacer" aria-hidden="true"></div>
+          <button type="button" class="btn btn--secondary" data-action="close-termin">
+            Abbrechen
+          </button>
+          <button type="submit" class="btn btn--primary" data-action="submit-termin">
+            Beratung anfragen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <!-- Termin-Confirmation-Modal (nach Submit)                                -->
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <div class="modal-overlay" data-modal="termin-confirmation" role="presentation" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="termin-confirmation-title" aria-modal="true">
+      <h2 id="termin-confirmation-title" class="modal-card__title">Vielen Dank!</h2>
+      <p class="modal-card__intro" data-termin-confirmation-summary>
+        Ein Berater meldet sich bei Ihnen.
+      </p>
+      <p class="modal-card__note">
+        <strong>Hinweis:</strong> Diese Buchung ist aktuell ein
+        Konzept-Vorschlag. In der Live-Variante wird Cal.com oder ein
+        vergleichbares Tool eingebunden.
+      </p>
+      <div class="modal-card__actions">
+        <div class="modal-card__actions-spacer" aria-hidden="true"></div>
+        <button type="button" class="btn btn--primary" data-action="close-confirmation">
+          Schließen
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- App-Einstiegspunkt (ES-Module). wizard.js bindet die übrigen Module ein. -->
   <script type="module" src="./js/wizard.js"></script>
 </body>

@@ -309,3 +309,151 @@
 .modal-card__actions-spacer {
   flex: 1;
 }
+
+/* Breite Variante der Modal-Karte (für Beratungs-Termin-Modal mit Kalender). */
+.modal-card--wide {
+  max-width: 880px;
+}
+
+.modal-card__note {
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  background-color: var(--color-royal-blue-05);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-primary);
+  margin-top: var(--space-4);
+  line-height: 1.5;
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/*  Beratungs-Termin-Kalender (Sprint-2-D1)                                  */
+/* ───────────────────────────────────────────────────────────────────────── */
+
+.termin-calendar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: var(--space-2);
+}
+
+.termin-day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.termin-day__header {
+  font-weight: var(--fw-semibold);
+  font-size: var(--font-sm);
+  color: var(--color-text);
+  text-align: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-2);
+  position: sticky;
+  top: 0;
+  background-color: var(--color-white);
+  z-index: 1;
+}
+
+.termin-day__header-weekday {
+  display: block;
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-regular);
+}
+
+.termin-slot {
+  font-size: var(--font-xs);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+  color: var(--color-text);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.termin-slot:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background-color: var(--color-royal-blue-05);
+}
+
+.termin-slot:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.termin-slot[disabled],
+.termin-slot--busy {
+  background-color: var(--color-bg-muted);
+  color: var(--color-border-strong);
+  cursor: not-allowed;
+  text-decoration: line-through;
+  border-color: var(--color-border);
+}
+
+.termin-slot--recommended {
+  border-color: var(--color-primary);
+  background-color: var(--color-royal-blue-10);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary);
+  animation: terminSlotPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes terminSlotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-royal-blue-25); }
+  50%      { box-shadow: 0 0 0 4px transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .termin-slot--recommended { animation: none; }
+}
+
+.termin-slot--selected {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
+  animation: none;
+}
+.termin-slot--selected:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.termin-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.termin-selected {
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-muted);
+  border-radius: var(--radius-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.termin-selected--active {
+  color: var(--color-primary);
+  background-color: var(--color-royal-blue-05);
+  font-weight: var(--fw-semibold);
+}
+
+/* Mobile: Kalender stackt zu 2 Spalten, schmaler */
+@media (max-width: 700px) {
+  .termin-calendar {
+    grid-template-columns: repeat(2, 1fr);
+    max-height: 320px;
+  }
+}

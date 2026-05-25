@@ -42,6 +42,7 @@ import {
 } from './scope.js';
 import { SCOPE_ITEMS, SCOPE_CATEGORY_LABELS } from './config.js';
 import { computeTimeline } from './timeline.js';
+import { generateCalendarSlots } from './calendar-mock.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Konstanten
@@ -108,6 +109,9 @@ const state = {
   // den Default-Includes befüllt, danach persistent bis "Neue Schätzung".
   /** @type {Set<string> | null} */
   includedScopeIds: null,
+  /** Gewählter Termin-Slot im Beratungs-Modal (Sprint-2-D1). */
+  /** @type {Date | null} */
+  terminSelectedSlot: null,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -837,6 +841,250 @@ function bindSettingsActions() {
   });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Beratungs-Termin-Modal (Sprint-2-D1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TERMIN_CALENDAR_DAYS = 5;
+const TERMIN_WEEKDAY_LABELS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+const terminDayFormatter = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+});
+const terminTimeFormatter = new Intl.DateTimeFormat('de-DE', {
+  hour: '2-digit',
+  minute: '2-digit',
+});
+const terminFullFormatter = new Intl.DateTimeFormat('de-DE', {
+  weekday: 'long',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+function openTerminModal() {
+  const overlay = document.querySelector('[data-modal="termin"]');
+  if (!overlay) return;
+  state.terminSelectedSlot = null;
+  clearTerminFormErrors();
+  renderTerminCalendar();
+  updateTerminSelectedDisplay();
+  overlay.hidden = false;
+  // Fokus auf erstes Pflichtfeld setzen.
+  const firstInput = document.getElementById('terminName');
+  if (firstInput) setTimeout(() => firstInput.focus(), 50);
+}
+
+function closeTerminModal() {
+  const overlay = document.querySelector('[data-modal="termin"]');
+  if (overlay) overlay.hidden = true;
+}
+
+function openTerminConfirmation(summary) {
+  const overlay = document.querySelector('[data-modal="termin-confirmation"]');
+  if (!overlay) return;
+  const summaryEl = document.querySelector('[data-termin-confirmation-summary]');
+  if (summaryEl && summary) summaryEl.textContent = summary;
+  overlay.hidden = false;
+}
+
+function closeTerminConfirmation() {
+  const overlay = document.querySelector('[data-modal="termin-confirmation"]');
+  if (overlay) overlay.hidden = true;
+}
+
+/**
+ * Rendert die 5 Werktage als Spalten mit ihren Slot-Buttons.
+ */
+function renderTerminCalendar() {
+  const calendarEl = document.querySelector('[data-termin-calendar]');
+  if (!calendarEl) return;
+  calendarEl.innerHTML = '';
+
+  const today = new Date();
+  const todayIso = today.toISOString().slice(0, 10);
+
+  let slots;
+  try {
+    slots = generateCalendarSlots(todayIso, TERMIN_CALENDAR_DAYS, { now: today });
+  } catch (err) {
+    console.error('Termin-Slot-Generation fehlgeschlagen:', err);
+    return;
+  }
+
+  // Slots nach Tag gruppieren.
+  /** @type {Map<string, typeof slots>} */
+  const byDay = new Map();
+  for (const slot of slots) {
+    const key = slot.datetime.toDateString();
+    if (!byDay.has(key)) byDay.set(key, []);
+    byDay.get(key).push(slot);
+  }
+
+  for (const [, daySlots] of byDay) {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'termin-day';
+
+    const headerEl = document.createElement('div');
+    headerEl.className = 'termin-day__header';
+    const firstSlot = daySlots[0];
+    const weekday = TERMIN_WEEKDAY_LABELS[firstSlot.datetime.getDay()];
+    headerEl.innerHTML = `${terminDayFormatter.format(firstSlot.datetime)}<span class="termin-day__header-weekday">${weekday}</span>`;
+    dayEl.appendChild(headerEl);
+
+    for (const slot of daySlots) {
+      const slotEl = document.createElement('button');
+      slotEl.type = 'button';
+      slotEl.className = 'termin-slot';
+      slotEl.textContent = terminTimeFormatter.format(slot.datetime);
+      slotEl.dataset.slotTime = String(slot.datetime.getTime());
+      slotEl.setAttribute('aria-label', terminFullFormatter.format(slot.datetime));
+
+      if (slot.status === 'busy') {
+        slotEl.classList.add('termin-slot--busy');
+        slotEl.disabled = true;
+      } else if (slot.status === 'recommended') {
+        slotEl.classList.add('termin-slot--recommended');
+        slotEl.title = 'Empfohlener Slot';
+      }
+
+      if (state.terminSelectedSlot && slot.datetime.getTime() === state.terminSelectedSlot.getTime()) {
+        slotEl.classList.add('termin-slot--selected');
+      }
+
+      slotEl.addEventListener('click', handleTerminSlotClick);
+      dayEl.appendChild(slotEl);
+    }
+
+    calendarEl.appendChild(dayEl);
+  }
+}
+
+function handleTerminSlotClick(event) {
+  const button = event.currentTarget;
+  const ts = Number(button.dataset.slotTime);
+  if (!Number.isFinite(ts)) return;
+  state.terminSelectedSlot = new Date(ts);
+
+  // Re-render Calendar damit das gewählte Slot-Highlight stimmt.
+  renderTerminCalendar();
+  updateTerminSelectedDisplay();
+}
+
+function updateTerminSelectedDisplay() {
+  const display = document.querySelector('[data-termin-selected]');
+  if (!display) return;
+  if (state.terminSelectedSlot) {
+    display.classList.add('termin-selected--active');
+    display.textContent = `Gewählter Termin: ${terminFullFormatter.format(state.terminSelectedSlot)} Uhr`;
+  } else {
+    display.classList.remove('termin-selected--active');
+    display.textContent = 'Bitte wählen Sie oben einen freien Termin aus.';
+  }
+}
+
+function clearTerminFormErrors() {
+  for (const field of ['terminName', 'terminEmail', 'terminFirma']) {
+    const errorSlot = document.querySelector(`[data-error-for="${field}"]`);
+    if (errorSlot) errorSlot.textContent = '';
+    const input = document.getElementById(field);
+    if (input) input.removeAttribute('aria-invalid');
+  }
+}
+
+function handleSubmitTermin(event) {
+  event.preventDefault();
+  clearTerminFormErrors();
+
+  const name = document.getElementById('terminName')?.value?.trim() ?? '';
+  const email = document.getElementById('terminEmail')?.value?.trim() ?? '';
+  const firma = document.getElementById('terminFirma')?.value?.trim() ?? '';
+
+  let firstErrorField = null;
+  const setError = (field, message) => {
+    const errorSlot = document.querySelector(`[data-error-for="${field}"]`);
+    if (errorSlot) errorSlot.textContent = message;
+    const input = document.getElementById(field);
+    if (input) input.setAttribute('aria-invalid', 'true');
+    if (!firstErrorField) firstErrorField = field;
+  };
+
+  if (!name) setError('terminName', 'Name ist ein Pflichtfeld.');
+  if (!email) {
+    setError('terminEmail', 'E-Mail ist ein Pflichtfeld.');
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setError('terminEmail', 'Bitte eine gültige E-Mail-Adresse angeben.');
+  }
+  if (!firma) setError('terminFirma', 'Firma ist ein Pflichtfeld.');
+
+  if (!state.terminSelectedSlot) {
+    const display = document.querySelector('[data-termin-selected]');
+    if (display) {
+      display.classList.add('termin-selected--error');
+      display.textContent = 'Bitte oben einen Termin auswählen, bevor Sie anfragen.';
+    }
+    if (!firstErrorField) {
+      const calendarEl = document.querySelector('[data-termin-calendar]');
+      if (calendarEl) calendarEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  if (firstErrorField || !state.terminSelectedSlot) {
+    if (firstErrorField) {
+      const el = document.getElementById(firstErrorField);
+      if (el) setTimeout(() => el.focus({ preventScroll: true }), 100);
+    }
+    return;
+  }
+
+  // Submit erfolgreich → Confirmation-Modal mit Zusammenfassung.
+  const summary = `${name} (${firma}) — Termin am ${terminFullFormatter.format(state.terminSelectedSlot)} Uhr. Ein Berater meldet sich unter ${email}.`;
+  closeTerminModal();
+  openTerminConfirmation(summary);
+}
+
+function bindTerminModalActions() {
+  const overlay = document.querySelector('[data-modal="termin"]');
+  const confirmationOverlay = document.querySelector('[data-modal="termin-confirmation"]');
+  if (!overlay) return;
+
+  for (const btn of document.querySelectorAll('[data-action="close-termin"]')) {
+    btn.addEventListener('click', closeTerminModal);
+  }
+  for (const btn of document.querySelectorAll('[data-action="submit-termin"]')) {
+    btn.addEventListener('click', handleSubmitTermin);
+  }
+  const form = document.querySelector('[data-termin-form]');
+  if (form) form.addEventListener('submit', handleSubmitTermin);
+
+  // Click auf Overlay (außerhalb der Karte) schließt.
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeTerminModal();
+  });
+
+  if (confirmationOverlay) {
+    for (const btn of document.querySelectorAll('[data-action="close-confirmation"]')) {
+      btn.addEventListener('click', closeTerminConfirmation);
+    }
+    confirmationOverlay.addEventListener('click', e => {
+      if (e.target === confirmationOverlay) closeTerminConfirmation();
+    });
+  }
+
+  // Escape schließt das jeweils oberste sichtbare Modal.
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (confirmationOverlay && !confirmationOverlay.hidden) {
+      closeTerminConfirmation();
+    } else if (!overlay.hidden) {
+      closeTerminModal();
+    }
+  });
+}
+
 async function handleExportPDF() {
   if (state.currentStep !== 3 || !state.sensitivityOriginalParams) return;
 
@@ -885,6 +1133,9 @@ async function handleExportPDF() {
       scopeIn,
       scopeOut,
     });
+
+    // Nach erfolgreichem PDF-Export → Lead-Funnel anbieten (Sprint-2-D1).
+    openTerminModal();
   } catch (err) {
     console.error('PDF-Export fehlgeschlagen:', err);
     window.alert('PDF-Export fehlgeschlagen. Bitte Browser-Konsole prüfen.');
@@ -1252,6 +1503,7 @@ function init() {
   bindFormInputs();
   bindFooterButtons();
   bindSettingsActions();
+  bindTerminModalActions();
 
   // Initial-Render: State und DOM in Sync bringen.
   updateProgress();
