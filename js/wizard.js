@@ -462,13 +462,16 @@ const updateLivePreviewDebounced = debounce(updateLivePreview, LIVE_PREVIEW_DEBO
  */
 const HERO_REVEAL_SEQUENCE = Object.freeze([
   { selector: '.result__summary',     delay: 0 },
-  { selector: '.result__feasibility', delay: 200 },
-  { selector: '.result__chart',       delay: 350 },
-  { selector: '.result__timeline',    delay: 450 },
-  { selector: '.result__sensitivity', delay: 550 },
-  { selector: '.result__assumptions', delay: 650 },
-  { selector: '.result__risks',       delay: 750 },
-  { selector: '.result__scope',       delay: 850 },
+  { selector: '.result__feasibility', delay: 180 },
+  // Chart + Sensitivity liegen im result__main-grid nebeneinander, daher fast
+  // synchroner Reveal (subtiler 50-ms-Versatz für gefühlte Bewegung).
+  { selector: '.result__chart',       delay: 320 },
+  { selector: '.result__sensitivity', delay: 370 },
+  { selector: '.result__timeline',    delay: 500 },
+  // Annahmen + Risiken + Scope im result__detail-grid → leicht versetzt.
+  { selector: '.result__assumptions', delay: 640 },
+  { selector: '.result__risks',       delay: 690 },
+  { selector: '.result__scope',       delay: 740 },
 ]);
 
 /** Tracking laufender Reveal-Timer, damit wir bei "Neue Schätzung" canceln können. */

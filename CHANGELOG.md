@@ -12,6 +12,17 @@ nicht aufgeführt.
 
 ## [Unreleased]
 
+### Changed
+
+- **Visuelle Hierarchie Step 3 restrukturiert** — die ehemals durchgängig
+  einspaltige Liste wurde in drei Ebenen geordnet: Hero-Box (PT-Counter +
+  Cost-Range) ist jetzt größer und prominenter (5,5 rem PT-Zahl, mehr
+  Padding, kräftigerer Royal-Blue-Bg, dickere Akzentleiste). Donut und
+  Sensitivity-Slider stehen ab 900 px nebeneinander in einem 2-Spalten-
+  Block. Annahmen, Risiken und Scope-Konfigurator bilden ab 1100 px einen
+  3-Spalten-Block; unter 1100 px 2 Spalten, unter 700 px 1 Spalte.
+  Vertikales Spacing zwischen Hauptblöcken vergrößert.
+
 ### Added
 
 - **Polish: Hero-Reveal und Live-Pulse in Step 3** — beim Eintritt zu Step
