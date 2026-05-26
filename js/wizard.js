@@ -630,10 +630,11 @@ const HERO_REVEAL_SEQUENCE = Object.freeze([
   { selector: '.result__chart',       delay: 320 },
   { selector: '.result__sensitivity', delay: 370 },
   { selector: '.result__timeline',    delay: 500 },
-  // Annahmen + Risiken + Scope im result__detail-grid → leicht versetzt.
+  // Annahmen + Risiken im result__detail-grid (2-spaltig) → fast synchron.
   { selector: '.result__assumptions', delay: 640 },
   { selector: '.result__risks',       delay: 690 },
-  { selector: '.result__scope',       delay: 740 },
+  // Scope steht als eigene full-width Sektion zuletzt.
+  { selector: '.result__scope',       delay: 820 },
 ]);
 
 /** Tracking laufender Reveal-Timer, damit wir bei "Neue Schätzung" canceln können. */
