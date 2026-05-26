@@ -12,6 +12,25 @@ nicht aufgeführt.
 
 ## [Unreleased]
 
+### Added
+
+- **Floating Help-Panel mit Kontext-Hilfe** — kreisrunder Fragezeichen-
+  Button unten rechts öffnet ein Slide-Out-Panel rechts mit Hilfe-Inhalten
+  zum aktuell sichtbaren Step. Step 1 erklärt Projekttypen und geplante
+  Dauer, Step 2 die acht Systemparameter samt Zählweise, Step 3 die
+  Range-Interpretation, Phasen-Methodik, Sensitivity-Slider, Machbarkeits-
+  Ampel und den Scope-Konfigurator. Escape und Click auf das ×-Symbol
+  schließen. Panel-Inhalt wird automatisch aktualisiert, wenn der User
+  bei offenem Panel zwischen Steps wechselt.
+- **Comparison-Toggle „Original-Werte anzeigen" in Step 3** — sobald
+  mindestens ein Sensitivity-Slider vom Original abweicht, erscheint im
+  Sensitivity-Block ein Checkbox-Toggle. Aktiviert wird ein
+  „(war: 10)"-Suffix in muted-grau hinter jedem modifizierten Slider-
+  Wert eingeblendet. Beim PDF-Export wird derselbe Suffix in der
+  Systemparameter-Tabelle des PDFs übernommen, wenn der Toggle beim
+  Export aktiv war. Reset, Step-Wechsel und „Neue Schätzung" setzen den
+  Toggle automatisch zurück.
+
 ### Changed
 
 - **Visuelle Hierarchie Step 3 restrukturiert** — die ehemals durchgängig

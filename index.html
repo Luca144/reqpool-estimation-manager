@@ -318,7 +318,14 @@
             <h3 class="result__section-heading">Sensitivitäts-Analyse</h3>
             <p class="result__sensitivity-intro">Hier erscheinen automatisch die drei Parameter mit größtem Einfluss als Slider.</p>
             <div class="result__sensitivity-sliders" data-sensitivity-sliders></div>
-            <button type="button" class="btn btn--secondary" data-action="reset-sensitivity">Werte zurücksetzen</button>
+            <div class="result__sensitivity-actions">
+              <button type="button" class="btn btn--secondary" data-action="reset-sensitivity">Werte zurücksetzen</button>
+              <!-- G5: Toggle erscheint nur, wenn Modifikationen aktiv sind -->
+              <label class="compare-toggle" data-compare-toggle-wrapper hidden>
+                <input type="checkbox" data-action="toggle-comparison" />
+                <span class="compare-toggle__label">Original-Werte anzeigen</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -382,6 +389,33 @@
       <button type="button" class="btn btn--secondary" data-action="new-estimation" hidden>Neue Schätzung</button>
     </footer>
   </main>
+
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <!-- Floating Help-Panel (Sprint-2-G4)                                      -->
+  <!-- ────────────────────────────────────────────────────────────────────── -->
+  <button
+    type="button"
+    class="help-fab"
+    data-action="toggle-help"
+    aria-label="Hilfe öffnen"
+    aria-expanded="false"
+    aria-controls="help-panel"
+    title="Hilfe"
+  >
+    <span aria-hidden="true">?</span>
+  </button>
+  <aside class="help-panel" id="help-panel" data-help-panel hidden role="complementary" aria-labelledby="help-panel-title">
+    <header class="help-panel__header">
+      <h2 id="help-panel-title" class="help-panel__title">Hilfe</h2>
+      <button
+        type="button"
+        class="help-panel__close"
+        data-action="close-help"
+        aria-label="Hilfe schließen"
+      >×</button>
+    </header>
+    <div class="help-panel__content" data-help-content></div>
+  </aside>
 
   <!-- ────────────────────────────────────────────────────────────────────── -->
   <!-- Settings-Modal (Tagessatz-Override, Sprint-2-A2)                       -->

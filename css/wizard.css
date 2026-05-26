@@ -736,6 +736,45 @@ body {
   color: var(--color-text-muted);
 }
 
+/* G5: Original-Werte als kursiver, gedämpfter Suffix neben dem aktuellen Wert. */
+.sensitivity-slider__was {
+  font-style: italic;
+  font-weight: var(--fw-regular);
+  color: var(--color-text-muted);
+  margin-left: var(--space-2);
+  font-size: var(--font-xs);
+}
+
+/* G5: Action-Row unter den Slidern (Reset-Button + Comparison-Toggle) */
+.result__sensitivity-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.compare-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.compare-toggle:hover {
+  color: var(--color-text);
+}
+.compare-toggle input[type='checkbox'] {
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+.compare-toggle__label {
+  font-weight: var(--fw-medium);
+}
+
 /* Aufklappbarer Block für die übrigen 5 Parameter (A3 — Erweiterte Sensitivity).
    Browser-native <details>/<summary>, kein eigenes JS-Toggle. */
 .sensitivity-additional {

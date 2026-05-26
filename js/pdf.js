@@ -289,7 +289,7 @@ class PDFBuilder {
     this.advance(5);
   }
 
-  drawParamsTable(params) {
+  drawParamsTable(params, originalParams = null) {
     // 2 Spalten à 4 Zeilen.
     const colWidth = CONTENT_WIDTH / 2;
     const rowHeight = 6;
@@ -306,14 +306,27 @@ class PDFBuilder {
       }
 
       this.font({ size: 10, style: 'normal' });
-      this.doc.text(String(params[leftKey] ?? 0), CONTENT_LEFT + 45, this.y);
+      this.doc.text(this.formatParamValue(params, originalParams, leftKey), CONTENT_LEFT + 45, this.y);
       if (rightKey) {
-        this.doc.text(String(params[rightKey] ?? 0), CONTENT_LEFT + colWidth + 45, this.y);
+        this.doc.text(this.formatParamValue(params, originalParams, rightKey), CONTENT_LEFT + colWidth + 45, this.y);
       }
 
       this.advance(rowHeight);
     }
     this.advance(3);
+  }
+
+  /**
+   * Rendert einen Parameter-Wert mit optional einem "(war: X)"-Suffix, wenn
+   * originalParams bekannt sind und vom aktuellen Wert abweichen (G5-PDF).
+   */
+  formatParamValue(params, originalParams, key) {
+    const current = String(params[key] ?? 0);
+    if (!originalParams) return current;
+    const original = originalParams[key];
+    if (original === undefined || original === null) return current;
+    if (Number(original) === Number(params[key])) return current;
+    return `${current} (war: ${original})`;
   }
 
   drawPhasesTable(phases) {
@@ -486,7 +499,7 @@ export async function exportEstimationToPDF(data) {
   builder.drawTotalBox(estimation, !!sensitivityModified);
 
   builder.drawSectionHeading('Systemparameter');
-  builder.drawParamsTable(params);
+  builder.drawParamsTable(params, data.originalParams);
 
   builder.drawSectionHeading('Phasenaufteilung');
   builder.drawPhasesTable(estimation.phases);

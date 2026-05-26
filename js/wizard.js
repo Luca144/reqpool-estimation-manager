@@ -112,6 +112,8 @@ const state = {
   /** Gewählter Termin-Slot im Beratungs-Modal (Sprint-2-D1). */
   /** @type {Date | null} */
   terminSelectedSlot: null,
+  /** G5: User-Wunsch „Original-Werte zusätzlich zeigen" in Step 3. */
+  showComparison: false,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -178,6 +180,10 @@ function goToStep(stepNumber) {
   showStep(stepNumber);
   updateProgress();
   updateFooterButtons();
+
+  // Help-Panel-Inhalt updaten, falls offen (Sprint-2-G4).
+  const helpPanel = document.querySelector('[data-help-panel]');
+  if (helpPanel && !helpPanel.hidden) renderHelpContent();
 
   if (stepNumber === 2) {
     // Refresh, falls der User mit "Zurück" aus Step 3 zurückkommt und schon
@@ -379,6 +385,10 @@ function handleReset() {
   state.sensitivityOverrides = {};
   state.consultantCount = DEFAULT_CONSULTANT_COUNT;
   state.includedScopeIds = null;
+  state.showComparison = false;
+  // Comparison-Checkbox visuell zurücksetzen.
+  const compareCheckbox = document.querySelector('[data-action="toggle-comparison"]');
+  if (compareCheckbox) compareCheckbox.checked = false;
 
   const step1Form = document.querySelector('[data-form="step1"]');
   const step2Form = document.querySelector('[data-form="step2"]');
@@ -450,6 +460,158 @@ const updateLivePreviewDebounced = debounce(updateLivePreview, LIVE_PREVIEW_DEBO
 // ─────────────────────────────────────────────────────────────────────────────
 // Step-3-Rendering (Vollständige Schätzung)
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// G4: Floating Help-Panel
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Statische Hilfeinhalte pro Step (Sprint-2 deutsch). Sobald F1-i18n in
+ * Sprint 3 aktiv ist, wandern diese Texte nach de.json — bis dahin pragmatisch
+ * inline, damit der Help-Panel ohne i18n-Infrastruktur funktioniert.
+ *
+ * @type {Record<number, ReadonlyArray<{ title: string, body: string }>>}
+ */
+const HELP_CONTENT = Object.freeze({
+  1: [
+    {
+      title: 'Projekttyp',
+      body:
+        '<p><strong>Greenfield:</strong> Neuentwicklung ohne Bestand. Kein Altsystem, das integriert oder abgelöst werden muss.</p>' +
+        '<p><strong>Brownfield:</strong> Erweiterung oder Ergänzung eines bestehenden Systems. Vorhandene Architektur und Datenmodelle werden berücksichtigt.</p>' +
+        '<p><strong>Migration:</strong> Ablösung eines bestehenden Systems durch ein neues. Datenmigration ist <strong>nicht</strong> in dieser Schätzung enthalten und muss separat skopiert werden.</p>',
+    },
+    {
+      title: 'Geplante Dauer',
+      body:
+        '<p>Optionale Angabe. Wenn gesetzt, vergleicht der Machbarkeits-Check in Step 3 deine Plan-Dauer mit der realistischen Dauer (PT ÷ Berater ÷ 20 Werktage) und gibt eine Ampel-Bewertung.</p>' +
+        '<p>Ohne Wert bleibt der Machbarkeits-Block in Step 3 ausgeblendet — du kannst trotzdem die volle Schätzung sehen.</p>',
+    },
+  ],
+  2: [
+    {
+      title: 'Pages',
+      body: '<p>Anzahl der UI-Screens, die spezifiziert werden müssen. Modale Dialoge und Pop-ups zählen typischerweise mit, kleine Hilfs-Overlays nicht.</p>',
+    },
+    {
+      title: 'Use Cases',
+      body: '<p>Anzahl der zu spezifizierenden Anwendungsfälle. Faustregel: ein abgeschlossener Geschäftsvorfall = ein Use Case. CRUD-Operationen sind meist kein separater Use Case, sondern Teil eines übergeordneten.</p>',
+    },
+    {
+      title: 'Business Objects',
+      body: '<p>Fachliche Datenobjekte / Entitäten (z.B. „Kunde", „Vertrag", „Position"). Technische Hilfsobjekte zählen nicht mit.</p>',
+    },
+    {
+      title: 'Interfaces',
+      body: '<p>Schnittstellen zu Drittsystemen. Pro Drittsystem eine Schnittstelle, auch wenn diese mehrere Endpoints hat. Interne Module zählen nicht.</p>',
+    },
+    {
+      title: 'Batches',
+      body: '<p>Automatisierte Hintergrundjobs (z.B. nächtliche Verarbeitungen, periodische Synchronisationen, Reports). Manuell ausgelöste Vorgänge zählen nicht.</p>',
+    },
+    {
+      title: 'Languages, Roles, Users',
+      body:
+        '<p><strong>Languages:</strong> Anzahl der unterstützten UI-Sprachen. Die erste Sprache (Deutsch) kostet keinen zusätzlichen Aufwand.</p>' +
+        '<p><strong>Roles:</strong> Anzahl der unterschiedlichen Benutzerrollen mit unterschiedlichen Berechtigungen.</p>' +
+        '<p><strong>Users:</strong> Erwartete produktive Nutzer. Skaliert nicht linear — bei großen Nutzerkreisen kommt Change-Management-Aufwand hinzu (in der RE-Schätzung <strong>nicht</strong> enthalten).</p>',
+    },
+  ],
+  3: [
+    {
+      title: 'PT-Range',
+      body:
+        '<p>Die drei Werte sind <strong>Pessimistisch</strong> (−15 %), <strong>Wahrscheinlich</strong> (100 %) und <strong>Optimistisch</strong> (+25 %) ausgehend vom kalkulierten Gesamtaufwand inkl. 15 % Komplexitäts-Puffer.</p>' +
+        '<p>Verbindliche Angebote erfolgen erst nach detaillierter Anforderungsanalyse.</p>',
+    },
+    {
+      title: 'Phasen-Aufteilung',
+      body:
+        '<p>Der Donut zeigt die Verteilung des Aufwands auf die sechs RE-Phasen. Diese Anteile (12 / 28 / 35 / 15 / 5 / 5 %) sind eine ReqPOOL-Methodik-Konstante — sie ändern sich <strong>nicht</strong> mit den Slidern.</p>' +
+        '<p>Was sich ändert: die absoluten PT-Werte pro Phase (sichtbar im Tooltip beim Hover).</p>',
+    },
+    {
+      title: 'Sensitivitäts-Slider',
+      body:
+        '<p>Mit den drei Top-Slidern kannst du die einflussreichsten Parameter live nachjustieren. Unter „Weitere Parameter anpassen" kommen die restlichen fünf dazu.</p>' +
+        '<p>Modifikationen markieren sich farblich. „Werte zurücksetzen" stellt die Original-Werte wieder her.</p>',
+    },
+    {
+      title: 'Machbarkeits-Check',
+      body:
+        '<p>Erscheint nur wenn in Step 1 eine geplante Dauer gesetzt wurde. <strong>Grün</strong>: Plan im realistischen Bereich (±20 %). <strong>Blau</strong>: Plan ist großzügig (Zeit übrig). <strong>Rot</strong>: Plan ist zu knapp — Risiko für Termin/Budget.</p>',
+    },
+    {
+      title: 'Leistungsumfang',
+      body:
+        '<p>Klick auf ein Item verschiebt es zwischen „Enthalten" und „Nicht enthalten". Der Gesamtaufwand passt sich live an.</p>' +
+        '<p>Beim PDF-Export werden die aktuell aktiven Items als Scope-Liste übernommen.</p>',
+    },
+  ],
+});
+
+function openHelpPanel() {
+  const panel = document.querySelector('[data-help-panel]');
+  const fab = document.querySelector('[data-action="toggle-help"]');
+  if (!panel || !fab) return;
+  renderHelpContent();
+  panel.hidden = false;
+  fab.setAttribute('aria-expanded', 'true');
+  // Fokus auf Close-Button setzen für Tastatur-User.
+  const closeBtn = panel.querySelector('[data-action="close-help"]');
+  if (closeBtn) setTimeout(() => closeBtn.focus(), 50);
+}
+
+function closeHelpPanel() {
+  const panel = document.querySelector('[data-help-panel]');
+  const fab = document.querySelector('[data-action="toggle-help"]');
+  if (!panel || !fab) return;
+  panel.hidden = true;
+  fab.setAttribute('aria-expanded', 'false');
+  // Fokus zurück auf den FAB.
+  fab.focus();
+}
+
+function toggleHelpPanel() {
+  const panel = document.querySelector('[data-help-panel]');
+  if (!panel) return;
+  if (panel.hidden) openHelpPanel();
+  else closeHelpPanel();
+}
+
+function renderHelpContent() {
+  const container = document.querySelector('[data-help-content]');
+  if (!container) return;
+  container.innerHTML = '';
+  const sections = HELP_CONTENT[state.currentStep] ?? HELP_CONTENT[1];
+  for (const section of sections) {
+    const sec = document.createElement('section');
+    sec.className = 'help-section';
+    const h = document.createElement('h3');
+    h.className = 'help-section__title';
+    h.textContent = section.title;
+    const body = document.createElement('div');
+    body.className = 'help-section__body';
+    body.innerHTML = section.body; // Statisch von uns, kein User-Input → safe.
+    sec.appendChild(h);
+    sec.appendChild(body);
+    container.appendChild(sec);
+  }
+}
+
+function bindHelpPanelActions() {
+  const fab = document.querySelector('[data-action="toggle-help"]');
+  const closeBtn = document.querySelector('[data-action="close-help"]');
+  if (fab) fab.addEventListener('click', toggleHelpPanel);
+  if (closeBtn) closeBtn.addEventListener('click', closeHelpPanel);
+
+  // Escape schließt das Panel, wenn offen.
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const panel = document.querySelector('[data-help-panel]');
+    if (panel && !panel.hidden) closeHelpPanel();
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // G1 + G2: Polish-Animationen (Hero-Reveal + Live-Pulse)
@@ -751,6 +913,68 @@ function renderSensitivity(params) {
     applyOverrides,
     { additionalDrivers },
   );
+
+  // G5: Comparison-Toggle initial verstecken (keine Modifications), Slider-
+  // Annotationen entsprechend leer.
+  updateComparisonVisibility();
+  renderSliderComparisons();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// G5: Comparison-Toggle (Original-Werte zusätzlich anzeigen)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Toggle-Wrapper sichtbar genau dann, wenn der User mindestens einen Slider
+ * vom Original abgewichen hat. Sonst macht der Toggle keinen Sinn.
+ */
+function updateComparisonVisibility() {
+  const wrapper = document.querySelector('[data-compare-toggle-wrapper]');
+  if (!wrapper) return;
+  const hasModifications = Object.keys(state.sensitivityOverrides ?? {}).length > 0;
+  wrapper.hidden = !hasModifications;
+  if (!hasModifications) {
+    const checkbox = wrapper.querySelector('input[type="checkbox"]');
+    if (checkbox) checkbox.checked = false;
+    state.showComparison = false;
+  }
+}
+
+/**
+ * Schreibt (bei aktiver Comparison) einen `(war: X)`-Suffix in das Value-Span
+ * jedes modifizierten Sliders. Entfernt den Suffix, wenn deaktiviert.
+ */
+function renderSliderComparisons() {
+  const sliders = document.querySelectorAll('.sensitivity-slider');
+  for (const sliderEl of sliders) {
+    const key = sliderEl.dataset.key;
+    const valueEl = sliderEl.querySelector('.sensitivity-slider__value');
+    if (!key || !valueEl) continue;
+    // Vorhandenen Suffix entfernen.
+    const existingWas = valueEl.querySelector('.sensitivity-slider__was');
+    if (existingWas) existingWas.remove();
+
+    if (!state.showComparison) continue;
+    const original = state.sensitivityOriginalParams?.[key];
+    const override = state.sensitivityOverrides?.[key];
+    if (override === undefined || original === undefined) continue;
+    if (override === original) continue;
+
+    const wasSpan = document.createElement('span');
+    wasSpan.className = 'sensitivity-slider__was';
+    wasSpan.textContent = `(war: ${original})`;
+    valueEl.appendChild(wasSpan);
+  }
+}
+
+function handleComparisonToggle(event) {
+  state.showComparison = !!event.target.checked;
+  renderSliderComparisons();
+}
+
+function bindComparisonToggle() {
+  const checkbox = document.querySelector('[data-action="toggle-comparison"]');
+  if (checkbox) checkbox.addEventListener('change', handleComparisonToggle);
 }
 
 /**
@@ -814,6 +1038,10 @@ function applyOverrides(overrides) {
   // G2 — Live-Highlight-Pulses auf Counter, Cost-Range, Chart, damit der
   // User visuell sieht, dass sein Slider/Toggle gewirkt hat.
   pulseLiveUpdate();
+
+  // G5 — Comparison-Toggle sichtbarkeit + Slider-Annotationen aktualisieren.
+  updateComparisonVisibility();
+  renderSliderComparisons();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1211,9 +1439,16 @@ async function handleExportPDF() {
         .map(i => i.name);
     }
 
+    // G5: Wenn Comparison-Toggle aktiv beim Export, geben wir die Step-2-
+    // Originalparameter mit, damit das PDF "Wert (war: X)" anzeigt.
+    const originalParams = state.showComparison && state.sensitivityOriginalParams
+      ? { ...state.sensitivityOriginalParams }
+      : undefined;
+
     await exportEstimationToPDF({
       projectInfo: { ...state.step1Values },
       params: currentParams,
+      originalParams,
       estimation,
       assumptions: generateAssumptions(currentParams),
       risks: generateRisks(currentParams),
@@ -1592,6 +1827,8 @@ function init() {
   bindFooterButtons();
   bindSettingsActions();
   bindTerminModalActions();
+  bindHelpPanelActions();
+  bindComparisonToggle();
 
   // Initial-Render: State und DOM in Sync bringen.
   updateProgress();
